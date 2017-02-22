@@ -58,15 +58,13 @@ def load_resource_from_path(resource_dir, service_name,
             file_values = json.loads(headers.read())
 
             if "headers" in file_values:
-                response.headers = dict(response.headers.items() +
-                                        file_values['headers'].items())
+                response.headers.update(file_values['headers'])
 
                 if 'status' in file_values:
                     response.status = file_values['status']
 
             else:
-                response.headers = dict(response.headers.items() +
-                                        file_values.items())
+                response.headers.update(file_values)
 
         except IOError:
             pass
