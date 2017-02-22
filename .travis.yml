@@ -9,6 +9,7 @@ before_script:
     - pip install pep8
     - pip install nose2
     - pip install coverage
+    - pip install python-coveralls
 script:
     - pep8 restclients_core
     - coverage run restclients_core/test.py -v
