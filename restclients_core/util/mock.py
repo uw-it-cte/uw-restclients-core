@@ -1,7 +1,10 @@
 import re
 import os
 import json
-from urllib import unquote
+try:
+    from urllib.parse import unquote
+except ImportError:
+    from urllib import unquote
 from restclients_core.models import MockHTTP
 
 
