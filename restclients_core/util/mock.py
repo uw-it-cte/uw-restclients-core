@@ -77,5 +77,3 @@ def convert_to_platform_safe(dir_file_name):
     :return: a string with all the reserved characters replaced
     """
     return re.sub('[\?|<>=:*,;+&"@$]', '_', dir_file_name)
-
-

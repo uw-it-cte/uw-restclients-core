@@ -6,22 +6,19 @@ class DAO(object):
     def __init__(self):
         self.implementation = None
 
-    # will probably be overridden
-    def _mock_data_path(self):
-        pass
-
     def service_name(self):
         raise Exception("service_name must be defined per DAO")
 
     def _custom_headers(self, method, url, headers, body):
-        # to handle things like https://github.com/uw-it-aca/uw-restclients/blob/master/restclients/dao_implementation/sws.py#L178
-        pass
-    def _custom_response(self, method, url, headers, body):
-        # when using mock resources, this is called to allow swapping out static responses w/ a code response (e.g. https://github.com/uw-it-aca/uw-restclients/blob/master/restclients/dao_implementation/sws.py#L71)
+        # to handle things like adding a bearer token
         pass
 
-    # Probably won't be
-    def getURL(self, url, headers): # These have the same args as before, plus an additional optional override of ok_statuses and error_statuses, if a specific resource requires them.
+    def _custom_response(self, method, url, headers, body):
+        # when using mock resources, this is called to allow swapping out
+        # static responses w/ a generated response
+        pass
+
+    def getURL(self, url, headers):
         return self._load_resource("GET", url, headers, None)
 
     def postURL(self, url, headers, body=None):
@@ -83,14 +80,6 @@ class DAO(object):
         # XXX - do we still need to support custom implementations?
         return self._get_mock_implementation()
 
-
-    def _get_cert_path(): # Can be overridden, but will have useful defaults
-        pass
-    def _get_key_path():
-        pass
-
-    def _build_path(): # gets realpath on arg[0], path.joins the rest then calls realpath on the result
-        pass
     def _is_cacheable(self, method, url, headers, body=None):
         if method == "GET":
             return True
@@ -117,6 +106,7 @@ class DAO(object):
     def service_mock_paths(self):
         return []
 
+
 class DAOImplementation(object):
     def __init__(self, service_name, dao):
         self._service_name = service_name
@@ -127,6 +117,7 @@ class DAOImplementation(object):
 
     def is_mock(self):
         return False
+
 
 class LiveDAO(DAOImplementation):
     pools = {}
@@ -143,7 +134,6 @@ class LiveDAO(DAOImplementation):
                                 retries=False, timeout=timeout)
 
         return response
-
 
     def get_pool(self):
         service = self.service()
@@ -203,7 +193,6 @@ class MockDAO(DAOImplementation):
     def get_registered_paths(self):
         return MockDAO.paths
 
-
     def _get_mock_paths(self):
         return self.get_registered_paths() + self.dao.service_mock_paths()
 
@@ -221,5 +210,3 @@ class MockDAO(DAOImplementation):
         response.status = 404
         response.reason = "Not Found"
         return response
-
-

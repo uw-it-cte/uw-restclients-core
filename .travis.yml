@@ -1,0 +1,16 @@
+sudo: false
+language: python
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+before_script:
+    - pip install pep8
+    - pip install nose2
+    - pip install coverage
+script:
+    - pep8 restclients_core
+    - coverage run restclients_core/test.py -v
+after_script:
+- coveralls
