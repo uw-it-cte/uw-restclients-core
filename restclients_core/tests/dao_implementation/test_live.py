@@ -18,7 +18,7 @@ class TestLive(TestCase):
     def test_found_resource(self):
         response = TDAO().getURL('/ok', {})
         self.assertEquals(response.status, 200)
-        self.assertEquals(response.data, 'ok')
+        self.assertEquals(response.data, b'ok')
         self.assertEquals(response.headers["X-Custom-Header"], "header-test")
         self.assertEquals(response.getheader("X-Custom-Header"), "header-test")
 
