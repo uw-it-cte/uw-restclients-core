@@ -131,7 +131,7 @@ class DAO(object):
         module, attr = value.rsplit('.', 1)
         try:
             mod = import_module(module)
-        except ImportError, e:
+        except ImportError as e:
             raise ImproperlyConfigured('Error importing module %s: "%s"' %
                                        (module, e))
         try:
@@ -188,8 +188,8 @@ class LiveDAO(DAOImplementation):
         service = self.service()
 
         host = self.dao.get_service_setting("HOST")
-        socket_timeout = self.dao.get_service_setting("TIMEOUT")
-        max_pool_size = self.dao.get_service_setting("POOL_SIZE")
+        socket_timeout = self.dao.get_service_setting("TIMEOUT", 2)
+        max_pool_size = self.dao.get_service_setting("POOL_SIZE", 10)
         key_file = self.dao.get_service_setting("KEY_FILE", None)
         cert_file = self.dao.get_service_setting("CERT_FILE", None)
         ca_certs = self.dao.get_setting("CA_BUNDLE",
