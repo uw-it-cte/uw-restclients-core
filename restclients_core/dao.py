@@ -2,6 +2,8 @@ from restclients_core.util.mock import load_resource_from_path
 from restclients_core.models import MockHTTP
 from restclients_core.exceptions import ImproperlyConfigured
 from restclients_core.cache import NoCache
+from importlib import import_module
+from commonconf import settings
 
 
 class DAO(object):
@@ -47,7 +49,9 @@ class DAO(object):
             headers.update(custom_headers)
 
         is_cacheable = self._is_cacheable(method, url, headers, body)
+
         cache = self.get_cache()
+
         if is_cacheable:
             cache_response = cache.getCache(service, url, headers)
             if cache_response:
@@ -117,11 +121,13 @@ class DAO(object):
     def _get_mock_implementation(self):
         return MockDAO(self.service_name(), self)
 
-    def get_service_setting(self, key, default):
-        pass
+    def get_service_setting(self, key, default=None):
+        return self.get_setting("%s_%s" % (self.service_name().upper(), key),
+                                default)
 
-    def get_setting(self, key, default):
-        pass
+    def get_setting(self, key, default=None):
+        key = "RESTCLIENTS_%s" % key
+        return getattr(settings, key, default)
 
     def service_mock_paths(self):
         return []

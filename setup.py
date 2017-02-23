@@ -22,7 +22,7 @@ setup(
     author="UW-IT AXDD",
     author_email="aca-it@uw.edu",
     include_package_data=True,
-    install_requires=[],
+    install_requires=['commonconf'],
     license='Apache License, Version 2.0',
     description=('Core code for clients of a variety of RESTful web services '
                  'at the University of Washington'),
