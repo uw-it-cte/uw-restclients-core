@@ -25,7 +25,7 @@ class DAO(object):
         if self.get_implementation().is_mock():
             self._edit_mock_response(method, url, headers, body, response)
 
-    def _edit_mock_responsex(self, method, url, headers, body, response):
+    def _edit_mock_response(self, method, url, headers, body, response):
         pass
 
     def getURL(self, url, headers):
