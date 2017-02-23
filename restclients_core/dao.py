@@ -2,8 +2,10 @@ from restclients_core.util.mock import load_resource_from_path
 from restclients_core.models import MockHTTP
 from restclients_core.exceptions import ImproperlyConfigured
 from restclients_core.cache import NoCache
+from restclients_core.util.performance import PerformanceDegradation
 from importlib import import_module
 from commonconf import settings
+import time
 
 
 class DAO(object):
@@ -42,7 +44,12 @@ class DAO(object):
         return self._load_resource("DELETE", url, headers, body)
 
     def _load_resource(self, method, url, headers, body):
+        start_time = time.time()
         service = self.service_name()
+
+        bad_response = PerformanceDegradation.get_response(service, url)
+        if bad_response:
+            return bad_response
 
         custom_headers = self._custom_headers(method, url, headers, body)
         if custom_headers:
@@ -92,8 +99,8 @@ class DAO(object):
             return self._get_mock_implementation()
 
         # Legacy settings support
-        live = "restclients.dao_implementation.%s.Live" % (self.service_name)
-        mock = "restclients.dao_implementation.%s.Live" % (self.service_name)
+        live = "restclients.dao_implementation.%s.Live" % (self.service_name())
+        mock = "restclients.dao_implementation.%s.Live" % (self.service_name())
 
         if live == implementation:
             return self._get_live_implementation()
@@ -101,7 +108,13 @@ class DAO(object):
         if mock == implementation:
             return self._get_mock_implementation()
 
-        # XXX - do we still need to support custom implementations?
+        try:
+            val = self._getModule(implementation, None, self.service_name(), self)
+            if val:
+                return val
+        except Exception as ex:
+            pass
+
         return self._get_mock_implementation()
 
     def _is_cacheable(self, method, url, headers, body=None):
@@ -132,7 +145,7 @@ class DAO(object):
     def service_mock_paths(self):
         return []
 
-    def _getModule(self, value, default_class):
+    def _getModule(self, value, default_class, *args):
         if not value:
             return default_class()
 
@@ -147,7 +160,10 @@ class DAO(object):
         except AttributeError:
             raise ImproperlyConfigured('Module "%s" does not define a '
                                        '"%s" class' % (module, attr))
-        return config_module()
+        return config_module(*args)
+
+    def _log(self, *args, **kwargs):
+        pass
 
 
 class DAOImplementation(object):
