@@ -15,17 +15,18 @@ class TestMock(TestCase):
     def test_found_resource(self):
         response = TDAO().getURL('/found.json', {})
         self.assertEquals(response.status, 200)
+        self.assertEquals(response.read(), '{"OK": true }\n')
 
     def test_missing_resource(self):
         response = TDAO().getURL('/missing.json', {})
         self.assertEquals(response.status, 404)
-        pass
 
     def test_file_headers(self):
         response = TDAO().getURL('/with_headers.json', {})
         self.assertEquals(response.status, 202)
 
         self.assertEquals(response.headers["Custom"], "My Custom Value")
+        self.assertEquals(response.getheader("Custom"), "My Custom Value")
 
     def test_plain_file_headers(self):
         response = TDAO().getURL('/with_only_headers.json', {})

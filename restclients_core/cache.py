@@ -1,6 +1,6 @@
 class NoCache(object):
     """
-    This never caches anything.
+    A cache implementation that never caches.
     """
     def getCache(self, service, url, headers):
         return None

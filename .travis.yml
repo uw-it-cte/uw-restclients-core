@@ -11,6 +11,7 @@ before_script:
     - pip install nose2
     - pip install coverage
     - pip install python-coveralls
+    - python travis-ci/live_server.py &
 script:
     - pep8 restclients_core
     - coverage run restclients_core/test.py -v

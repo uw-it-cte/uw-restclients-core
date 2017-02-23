@@ -5,43 +5,104 @@ from restclients_core.cache import NoCache
 from restclients_core.util.performance import PerformanceDegradation
 from importlib import import_module
 from commonconf import settings
+from urlparse import urlparse
+from urllib3 import connection_from_url
 import time
 
 
 class DAO(object):
+    """
+    Base class for per-service interfaces.
+    """
     def __init__(self):
         self.implementation = None
 
     def service_name(self):
+        """
+        This method must be overridden to define your service's short name.
+
+        This name is used in multiple places.  The Mock DAO uses it in path
+        names for file, and the Django app for browsing services uses it as
+        part of the URL.
+        """
         raise Exception("service_name must be defined per DAO")
 
     def _custom_headers(self, method, url, headers, body):
+        """
+        This method can be overridden to add headers to a request.  For
+        example, a Bearer header can be added if a service uses OAuth tokens.
+        """
         # to handle things like adding a bearer token
         pass
 
     def _custom_response_edit(self, method, url, headers, body, response):
-        # when using mock resources, this is called to allow swapping out
-        # static responses w/ a generated response
+        """
+        This method allows a service to edit a response.
+
+        If you want to do this, you probably really want to use
+        _edit_mock_response - this method will operate on Live resources.
+        """
         if self.get_implementation().is_mock():
             self._edit_mock_response(method, url, headers, body, response)
 
     def _edit_mock_response(self, method, url, headers, body, response):
+        """
+        Override this method to edit responses in mock resources.  This can be
+        used to ensure datetime fields have useful values relative to now,
+        or to provide more dynamic behavior for PUT/POST/DELETE requests.
+
+        This method should edit the response object directly.  No return value.
+        """
         pass
 
-    def getURL(self, url, headers):
+    def get_default_service_setting(self, key):
+        """
+        A hook for setting useful defaults.  For example, if you have a host
+        your service almost always uses, you can have this method return that
+        value when passed 'HOST'.
+        """
+        return None
+
+    def getURL(self, url, headers={}):
+        """
+        Request a URL using the HTTP method GET
+        """
         return self._load_resource("GET", url, headers, None)
 
-    def postURL(self, url, headers, body=None):
+    def postURL(self, url, headers={}, body=None):
+        """
+        Request a URL using the HTTP method POST.
+        """
         return self._load_resource("POST", url, headers, body)
 
     def putURL(self, url, headers, body=None):
+        """
+        Request a URL using the HTTP method PUT.
+        """
         return self._load_resource("PUT", url, headers, body)
 
     def patchURL(self, url, headers, body):
+        """
+        Request a URL using the HTTP method PATCH.
+        """
         return self._load_resource("PATCH", url, headers, body)
 
     def deleteURL(self, url, headers, body):
+        """
+        Request a URL using the HTTP method DELETE.
+        """
         return self._load_resource("DELETE", url, headers, body)
+
+    def service_mock_paths(self):
+        """
+        If your web service client ships with mock resources, override this
+        method to return a list of top level paths where they can be found.
+
+        e.g. If your resource is in
+        /users/my/my_client/resources/client/file/hello.json
+        you should generate ["/users/my/my_client/resources"]
+        """
+        return []
 
     def _load_resource(self, method, url, headers, body):
         start_time = time.time()
@@ -136,15 +197,15 @@ class DAO(object):
         return MockDAO(self.service_name(), self)
 
     def get_service_setting(self, key, default=None):
+        if default is None:
+            default = self.get_default_service_setting(key)
+
         return self.get_setting("%s_%s" % (self.service_name().upper(), key),
                                 default)
 
     def get_setting(self, key, default=None):
         key = "RESTCLIENTS_%s" % key
         return getattr(settings, key, default)
-
-    def service_mock_paths(self):
-        return []
 
     def _getModule(self, value, default_class, args=[]):
         if not value:
@@ -180,6 +241,9 @@ class DAOImplementation(object):
 
 
 class LiveDAO(DAOImplementation):
+    """
+    Loads response objects by fetching resources from an HTTP(s) server.
+    """
     pools = {}
 
     def is_live(self):
@@ -196,7 +260,7 @@ class LiveDAO(DAOImplementation):
         return response
 
     def get_pool(self):
-        service = self.service()
+        service = self.dao.service_name()
         if service not in LiveDAO.pools:
             pool = self.create_pool()
             LiveDAO.pools[service] = pool
@@ -210,7 +274,7 @@ class LiveDAO(DAOImplementation):
             socket timeout for each connection in seconds
         """
 
-        service = self.service()
+        service = self.dao.service_name()
 
         host = self.dao.get_service_setting("HOST")
         socket_timeout = self.dao.get_service_setting("TIMEOUT", 2)
@@ -241,6 +305,9 @@ class LiveDAO(DAOImplementation):
 
 
 class MockDAO(DAOImplementation):
+    """
+    Loads response objects based on file content.
+    """
     paths = []
 
     def is_mock(self):
