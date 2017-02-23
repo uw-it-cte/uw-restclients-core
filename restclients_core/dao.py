@@ -5,8 +5,11 @@ from restclients_core.cache import NoCache
 from restclients_core.util.performance import PerformanceDegradation
 from importlib import import_module
 from commonconf import settings
-from urlparse import urlparse
 from urllib3 import connection_from_url
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 import time
 
 
