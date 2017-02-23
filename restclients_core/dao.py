@@ -1,5 +1,7 @@
 from restclients_core.util.mock import load_resource_from_path
 from restclients_core.models import MockHTTP
+from restclients_core.exceptions import ImproperlyConfigured
+from restclients_core.cache import NoCache
 
 
 class DAO(object):
@@ -34,6 +36,7 @@ class DAO(object):
         return self._load_resource("DELETE", url, headers, body)
 
     def _load_resource(self, method, url, headers, body):
+        service = self.service_name()
         custom_response = self._custom_response(method, url, headers, body)
         if custom_response:
             return custom_response
@@ -43,19 +46,34 @@ class DAO(object):
             headers.update(custom_headers)
 
         is_cacheable = self._is_cacheable(method, url, headers, body)
+        cache = self.get_cache()
         if is_cacheable:
-            # Check the cache
-            pass
+            cache_response = cache.getCache(service, url, headers)
+            if cache_response:
+                if "response" in cache_response:
+                    self._log(service=service, url=url, method=method,
+                              cached=True, start_time=start_time)
+                    return cache_response["response"]
+                if "headers" in cache_response:
+                    headers = cache_response["headers"]
 
         backend = self.get_implementation()
 
         response = backend.load(method, url, headers, body)
 
         if is_cacheable:
-            # Save into the cache
-            pass
+            cache_post_response = cache.processResponse(service, url, response)
+            if cache_post_response is not None:
+                if "response" in cache_post_response:
+                    self._log(service=service, url=url, method=method,
+                              cached=True, start_time=start_time)
+                    return cache_post_response["response"]
 
         return response
+
+    def get_cache(self):
+        implementation = self.get_setting("DAO_CACHE_CLASS", None)
+        return self._getModule(implementation, NoCache)
 
     def get_implementation(self):
         implementation = self.get_service_setting("DAO_CLASS", None)
@@ -105,6 +123,23 @@ class DAO(object):
 
     def service_mock_paths(self):
         return []
+
+    def _getModule(self, value, default_class):
+        if not value:
+            return default_class()
+
+        module, attr = value.rsplit('.', 1)
+        try:
+            mod = import_module(module)
+        except ImportError, e:
+            raise ImproperlyConfigured('Error importing module %s: "%s"' %
+                                       (module, e))
+        try:
+            config_module = getattr(mod, attr)
+        except AttributeError:
+            raise ImproperlyConfigured('Module "%s" does not define a '
+                                       '"%s" class' % (module, attr))
+        return config_module()
 
 
 class DAOImplementation(object):
