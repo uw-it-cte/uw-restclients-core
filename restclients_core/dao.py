@@ -15,9 +15,13 @@ class DAO(object):
         # to handle things like adding a bearer token
         pass
 
-    def _custom_response(self, method, url, headers, body):
+    def _custom_response_edit(self, method, url, headers, body, response):
         # when using mock resources, this is called to allow swapping out
         # static responses w/ a generated response
+        if self.get_implementation().is_mock():
+            self._edit_mock_response(method, url, headers, body, response)
+
+    def _edit_mock_responsex(self, method, url, headers, body, response):
         pass
 
     def getURL(self, url, headers):
@@ -37,9 +41,6 @@ class DAO(object):
 
     def _load_resource(self, method, url, headers, body):
         service = self.service_name()
-        custom_response = self._custom_response(method, url, headers, body)
-        if custom_response:
-            return custom_response
 
         custom_headers = self._custom_headers(method, url, headers, body)
         if custom_headers:
@@ -60,6 +61,7 @@ class DAO(object):
         backend = self.get_implementation()
 
         response = backend.load(method, url, headers, body)
+        self._custom_response_edit(method, url, headers, body, response)
 
         if is_cacheable:
             cache_post_response = cache.processResponse(service, url, response)
@@ -219,7 +221,7 @@ class MockDAO(DAOImplementation):
     paths = []
 
     def is_mock(self):
-        return False
+        return True
 
     def register_mock_path(self, path):
         if path not in paths:
