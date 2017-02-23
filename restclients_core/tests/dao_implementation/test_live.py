@@ -13,6 +13,7 @@ class TDAO(DAO):
         if "HOST" == key:
             return "http://localhost:9876/"
 
+
 class TestLive(TestCase):
     def test_found_resource(self):
         response = TDAO().getURL('/ok', {})
