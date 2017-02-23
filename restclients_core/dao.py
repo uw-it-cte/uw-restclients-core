@@ -109,7 +109,8 @@ class DAO(object):
             return self._get_mock_implementation()
 
         try:
-            val = self._getModule(implementation, None, self.service_name(), self)
+            val = self._getModule(implementation, None,
+                                  [self.service_name(), self])
             if val:
                 return val
         except Exception as ex:
@@ -145,7 +146,7 @@ class DAO(object):
     def service_mock_paths(self):
         return []
 
-    def _getModule(self, value, default_class, *args):
+    def _getModule(self, value, default_class, args=[]):
         if not value:
             return default_class()
 
