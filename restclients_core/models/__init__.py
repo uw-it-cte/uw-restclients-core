@@ -1,3 +1,13 @@
+from restclients_core.models.fields import (BooleanField, CharField, DateField,
+                                            DateTimeField, DecimalField,
+                                            FloatField,
+                                            IntegerField, NullBooleanField,
+                                            PositiveIntegerField,
+                                            PositiveSmallIntegerField,
+                                            SlugField, SmallIntegerField,
+                                            TextField, TimeField, URLField)
+
+
 class MockHTTP(object):
     """
     An alternate object to HTTPResponse, for non-HTTP DAO
@@ -24,3 +34,7 @@ class MockHTTP(object):
                     return self.headers[header]
 
         return default
+
+
+class Model(object):
+    pass
