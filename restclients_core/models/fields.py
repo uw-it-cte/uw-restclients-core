@@ -42,7 +42,12 @@ class BaseField(object):
 
 class CharField(BaseField):
     def __init__(self, *args, **kwargs):
-        self.default = u""
+        nullable = False
+        if "null" in kwargs and kwargs["null"]:
+            nullable = True
+
+        if not nullable:
+            self.default = u""
         super(CharField, self).__init__(*args, **kwargs)
 
 
