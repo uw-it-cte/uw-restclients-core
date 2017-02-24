@@ -1,16 +1,33 @@
 class BaseField(object):
+
     def __init__(self, *args, **kwargs):
-        self._value = None
+        self.values = {}
+        self.dynamics = set()
         super(BaseField, self).__init__()
 
     def __get__(self, instance, owner):
-        return self._value
+        key = self._key_for_instance(instance)
+        return self.values.get(key, None)
 
     def __set__(self, instance, value):
-        self._value = value
+        key = self._key_for_instance(instance)
+
+        if key not in self.dynamics:
+            instance._dynamic_fields.append(self)
+            self.dynamics.add(key)
+        self.values[key] = value
 
     def __delete__(self, instance):
-        self._value = None
+        key = self._key_for_instance(instance)
+        if key in self.dynamics:
+            self.dynamics.remove(key)
+        del self.values[key]
+
+    def _key_for_instance(self, instance):
+        return id(instance)
+
+    def clean(self, instance):
+        pass
 
 
 class CharField(BaseField):
@@ -70,4 +87,8 @@ class TimeField(BaseField):
 
 
 class URLField(BaseField):
+    pass
+
+
+class ForeignKey(BaseField):
     pass

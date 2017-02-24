@@ -1,6 +1,6 @@
 from restclients_core.models.fields import (BooleanField, CharField, DateField,
                                             DateTimeField, DecimalField,
-                                            FloatField,
+                                            FloatField, ForeignKey,
                                             IntegerField, NullBooleanField,
                                             PositiveIntegerField,
                                             PositiveSmallIntegerField,
@@ -37,4 +37,26 @@ class MockHTTP(object):
 
 
 class Model(object):
-    pass
+    def __init__(self, *args, **kwargs):
+        self._dynamic_fields = []
+
+        super(Model, self).__init__()
+
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
+
+    def __del__(self):
+        # Fields are stored in a per-object-id dictionary.  Those ids are
+        # guaranteed to be unique - but only over the lifetime of the object.
+        # This makes sure those values are removed when this object
+        # is destroyed.
+        for field in self._dynamic_fields:
+            field.__delete__(self)
+
+    def clean_fields(self):
+        for field in self._dynamic_fields:
+            field.clean(self)
+
+        pass
+
+PROTECT = None

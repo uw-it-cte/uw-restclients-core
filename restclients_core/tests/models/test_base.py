@@ -63,3 +63,31 @@ class TestModelBase(TestCase):
 
         del(model.urls)
         self.assertIsNone(model.urls)
+
+    def test_2_fields_2_instances(self):
+        class ModelTest(models.Model):
+            f1 = models.TextField()
+            f2 = models.TextField()
+
+        m1 = ModelTest()
+        m2 = ModelTest()
+
+        m1.f1 = "m1_f1"
+        m1.f2 = "m1_f2"
+        m2.f1 = "m2_f1"
+        m2.f2 = "m2_f2"
+
+        self.assertEquals(m1.f1, "m1_f1")
+        self.assertEquals(m1.f2, "m1_f2")
+        self.assertEquals(m2.f1, "m2_f1")
+        self.assertEquals(m2.f2, "m2_f2")
+
+    def test_init_fields(self):
+        class ModelTest(models.Model):
+            f1 = models.TextField()
+            f2 = models.BooleanField()
+
+        m1 = ModelTest(f1="Input value", f2=True)
+
+        self.assertEquals(m1.f1, "Input value")
+        self.assertEquals(m1.f2, True)
