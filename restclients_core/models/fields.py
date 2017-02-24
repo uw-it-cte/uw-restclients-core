@@ -3,11 +3,20 @@ class BaseField(object):
     def __init__(self, *args, **kwargs):
         self.values = {}
         self.dynamics = set()
+
+        self.default = None
+        if "default" in kwargs:
+            self.default = kwargs["default"]
+
         super(BaseField, self).__init__()
 
     def __get__(self, instance, owner):
         key = self._key_for_instance(instance)
-        return self.values.get(key, None)
+        set_value = self.values.get(key, None)
+
+        if set_value is None:
+            return self.default
+        return set_value
 
     def __set__(self, instance, value):
         key = self._key_for_instance(instance)

@@ -91,3 +91,17 @@ class TestModelBase(TestCase):
 
         self.assertEquals(m1.f1, "Input value")
         self.assertEquals(m1.f2, True)
+
+    def test_default_values(self):
+        class ModelTest(models.Model):
+            f1 = models.TextField(default="Has Default")
+            f2 = models.TextField()
+
+        m1 = ModelTest()
+        m2 = ModelTest(f1="override")
+
+        self.assertEquals(m1.f1, "Has Default")
+        self.assertEquals(m1.f2, None)
+
+        self.assertEquals(m2.f1, "override")
+        self.assertEquals(m2.f2, None)
