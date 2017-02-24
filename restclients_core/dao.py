@@ -164,7 +164,7 @@ class DAO(object):
 
         # Legacy settings support
         live = "restclients.dao_implementation.%s.Live" % (self.service_name())
-        mock = "restclients.dao_implementation.%s.Live" % (self.service_name())
+        mock = "restclients.dao_implementation.%s.File" % (self.service_name())
 
         if live == implementation:
             return self._get_live_implementation()
