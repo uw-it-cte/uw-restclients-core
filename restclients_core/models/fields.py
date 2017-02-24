@@ -12,10 +12,11 @@ class BaseField(object):
 
     def __get__(self, instance, owner):
         key = self._key_for_instance(instance)
-        set_value = self.values.get(key, None)
 
-        if set_value is None:
+        if key not in self.values:
             return self.default
+
+        set_value = self.values.get(key, None)
         return set_value
 
     def __set__(self, instance, value):
