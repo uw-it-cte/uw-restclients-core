@@ -33,9 +33,11 @@ class BaseField(object):
 
     def __delete__(self, instance):
         key = self._key_for_instance(instance)
+
         if key in self.dynamics:
             self.dynamics.remove(key)
-        del self.values[key]
+        if key in self.values:
+            del self.values[key]
 
     def _key_for_instance(self, instance):
         return id(instance)

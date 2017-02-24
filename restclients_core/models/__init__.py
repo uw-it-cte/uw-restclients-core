@@ -37,6 +37,8 @@ class MockHTTP(object):
 
 
 class Model(object):
+    _dynamic_fields = []
+
     def __init__(self, *args, **kwargs):
         self._dynamic_fields = []
 
