@@ -1,10 +1,10 @@
 class BaseField(object):
+    default = None
 
     def __init__(self, *args, **kwargs):
         self.values = {}
         self.dynamics = set()
 
-        self.default = None
         if "default" in kwargs:
             self.default = kwargs["default"]
 
@@ -24,6 +24,7 @@ class BaseField(object):
         if key not in self.dynamics:
             instance._dynamic_fields.append(self)
             self.dynamics.add(key)
+
         self.values[key] = value
 
     def __delete__(self, instance):
@@ -40,7 +41,9 @@ class BaseField(object):
 
 
 class CharField(BaseField):
-    pass
+    def __init__(self, *args, **kwargs):
+        self.default = u""
+        super(CharField, self).__init__(*args, **kwargs)
 
 
 class BooleanField(BaseField):
