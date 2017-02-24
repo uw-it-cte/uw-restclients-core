@@ -172,13 +172,9 @@ class DAO(object):
         if mock == implementation:
             return self._get_mock_implementation()
 
-        try:
-            val = self._getModule(implementation, None,
-                                  [self.service_name(), self])
-            if val:
-                return val
-        except Exception as ex:
-            pass
+        if implementation:
+            return self._getModule(implementation, None,
+                                   [self.service_name(), self])
 
         return self._get_mock_implementation()
 
