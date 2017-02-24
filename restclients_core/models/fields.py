@@ -1,3 +1,6 @@
+import datetime
+
+
 class BaseField(object):
     default = None
 
@@ -57,7 +60,11 @@ class BooleanField(BaseField):
 
 
 class DateField(BaseField):
-    pass
+    def clean(self, instance):
+        value = self.__get__(instance, None)
+
+        if type(value) == type(datetime.datetime.now()):
+            self.__set__(instance, value.date())
 
 
 class DateTimeField(BaseField):
