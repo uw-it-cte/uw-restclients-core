@@ -47,6 +47,8 @@ class BaseField(object):
 
 
 class CharField(BaseField):
+    has_choices = False
+
     def __init__(self, *args, **kwargs):
         nullable = False
         if "null" in kwargs and kwargs["null"]:
@@ -54,7 +56,22 @@ class CharField(BaseField):
 
         if not nullable:
             self.default = u""
+
+        if "choices" in kwargs:
+            self.has_choices = True
+            self.choices = kwargs["choices"]
+
         super(CharField, self).__init__(*args, **kwargs)
+
+    def get_display(self, instance):
+        val = self.__get__(instance, None)
+
+        if not self.has_choices:
+            raise Exception("No choices on field")
+
+        for opt in self.choices:
+            if opt[0] == val:
+                return opt[1]
 
 
 class BooleanField(BaseField):
@@ -65,7 +82,7 @@ class DateField(BaseField):
     def clean(self, instance):
         value = self.__get__(instance, None)
 
-        if type(value) == type(datetime.datetime.now()):
+        if isinstance(value, type(datetime.datetime.now())):
             self.__set__(instance, value.date())
 
 

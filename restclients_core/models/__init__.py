@@ -1,3 +1,4 @@
+import re
 from restclients_core.models.fields import (BooleanField, CharField, DateField,
                                             DateTimeField, DecimalField,
                                             FloatField, ForeignKey,
@@ -46,6 +47,27 @@ class Model(object):
 
         for key in kwargs:
             setattr(self, key, kwargs[key])
+
+    def __getattribute__(self, name):
+        try:
+            base_value = super(Model, self).__getattribute__(name)
+            return base_value
+        except AttributeError as ex:
+            base_value = None
+            original_exception = ex
+
+        match = re.match('get_(.*)_display', name)
+        if match:
+            try:
+                field = self.__class__.__dict__[match.group(1)]
+
+                value = field.get_display(self)
+                return lambda: value
+
+            except Exception:
+                pass
+
+        raise original_exception
 
     def __del__(self):
         # Fields are stored in a per-object-id dictionary.  Those ids are
