@@ -105,3 +105,20 @@ class TestModelBase(TestCase):
 
         self.assertEquals(m2.f1, "override")
         self.assertEquals(m2.f2, None)
+
+    def test_char_choices(self):
+        CHOICES = (('ok', 'OK!'), ('not_ok', 'Not OK!'))
+        class ModelTest(models.Model):
+            f1 = models.CharField(default='ok', choices=CHOICES)
+            f2 = models.CharField(default='ok2')
+
+        m1 = ModelTest()
+        self.assertEquals(m1.f1, 'ok')
+        self.assertEquals(m1.get_f1_display(), 'OK!')
+
+        m1.f1 = 'not_ok'
+        self.assertEquals(m1.f1, 'not_ok')
+        self.assertEquals(m1.get_f1_display(), 'Not OK!')
+
+        with self.assertRaises(AttributeError):
+            m1.get_f2_display()
