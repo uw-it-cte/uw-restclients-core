@@ -49,6 +49,11 @@ class Model(object):
             setattr(self, key, kwargs[key])
 
     def __getattribute__(self, name):
+        # This is in place to catch get_<attribute>_display.  If there's
+        # alrady a defined attribute here, just return it.  Otherwise if the
+        # attribute name matches our pattern, and we can find that name in our
+        # Class's dictionary, we try to let that field type get the right
+        # value.  then we return a function that returns the value.
         try:
             base_value = super(Model, self).__getattribute__(name)
             return base_value
