@@ -108,6 +108,7 @@ class TestModelBase(TestCase):
 
     def test_char_choices(self):
         CHOICES = (('ok', 'OK!'), ('not_ok', 'Not OK!'))
+
         class ModelTest(models.Model):
             f1 = models.CharField(default='ok', choices=CHOICES)
             f2 = models.CharField(default='ok2')
