@@ -90,11 +90,11 @@ class DAO(object):
         """
         return self._load_resource("PATCH", url, headers, body)
 
-    def deleteURL(self, url, headers, body):
+    def deleteURL(self, url, headers=None):
         """
         Request a URL using the HTTP method DELETE.
         """
-        return self._load_resource("DELETE", url, headers, body)
+        return self._load_resource("DELETE", url, headers, None)
 
     def service_mock_paths(self):
         """

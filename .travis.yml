@@ -14,6 +14,6 @@ before_script:
     - python travis-ci/live_server.py &
 script:
     - pep8 restclients_core
-    - coverage run restclients_core/test.py -v
+    - RUN_LIVE_TESTS=1 coverage run restclients_core/test.py -v
 after_script:
 - coveralls

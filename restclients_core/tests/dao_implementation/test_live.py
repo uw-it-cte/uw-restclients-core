@@ -1,5 +1,6 @@
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 from restclients_core.dao import DAO
+import os
 
 
 class TDAO(DAO):
@@ -14,6 +15,7 @@ class TDAO(DAO):
             return "http://localhost:9876/"
 
 
+@skipUnless("RUN_LIVE_TESTS" in os.environ, "RUN_LIVE_TESTS=1 to run tests")
 class TestLive(TestCase):
     def test_found_resource(self):
         response = TDAO().getURL('/ok', {})
