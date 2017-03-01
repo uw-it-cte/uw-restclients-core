@@ -1,6 +1,7 @@
 from unittest import TestCase
 from restclients_core.dao import DAO
 from os.path import abspath, dirname
+from restclients_core.dao import MockDAO
 
 
 class TDAO(DAO):
@@ -33,3 +34,15 @@ class TestMock(TestCase):
         self.assertEquals(response.status, 200)
 
         self.assertEquals(response.headers["Custom2"], "My Custom Value 2")
+
+    def test_registered_paths(self):
+        response = TDAO().getURL('/override.json', {})
+        self.assertEquals(response.status, 200)
+        self.assertEquals(response.read(), '{"override": false }\n')
+
+        override = abspath(dirname(__file__) + "/resource_override/")
+        MockDAO.register_mock_path(override)
+
+        response = TDAO().getURL('/override.json', {})
+        self.assertEquals(response.status, 200)
+        self.assertEquals(response.read(), '{"override": true }\n')

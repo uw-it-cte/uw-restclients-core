@@ -312,8 +312,9 @@ class MockDAO(DAOImplementation):
     def is_mock(self):
         return True
 
-    def register_mock_path(self, path):
-        if path not in paths:
+    @classmethod
+    def register_mock_path(cls, path):
+        if path not in MockDAO.paths:
             MockDAO.paths.append(path)
 
     def get_registered_paths(self):
