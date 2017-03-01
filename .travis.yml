@@ -17,6 +17,9 @@ script:
 - RUN_LIVE_TESTS=1 coverage run restclients_core/test.py -v
 after_script:
 - coveralls
+before_deploy:
+- find restclients_core/ -name \*.pyc -exec rm {} \;
+- echo $TRAVIS_TAG > restclients_core/VERSION
 deploy:
   provider: pypi
   server: https://pypi.python.org/pypi
