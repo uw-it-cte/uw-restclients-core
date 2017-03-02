@@ -18,3 +18,18 @@ class DataFailureException(Exception):
     def __str__(self):
         return ("Error fetching %s.  Status code: %s.  Message: %s." %
                 (self.url, self.status, self.msg))
+
+
+class InvalidRegID(Exception):
+    """Exception for invalid regid."""
+    pass
+
+
+class InvalidNetID(Exception):
+    """Exception for invalid netid."""
+    pass
+
+
+class InvalidEmployeeID(Exception):
+    """Exception for invalid employee id."""
+    pass
