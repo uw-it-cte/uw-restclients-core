@@ -46,6 +46,8 @@ class DAO(object):
         _edit_mock_response - this method will operate on Live resources.
         """
         if self.get_implementation().is_mock():
+            delay = self.get_setting("MOCKDATA_DELAY", 0.0)
+            time.sleep(delay)
             self._edit_mock_response(method, url, headers, body, response)
 
     def _edit_mock_response(self, method, url, headers, body, response):
