@@ -46,3 +46,7 @@ class TestMock(TestCase):
         response = TDAO().getURL('/override.json', {})
         self.assertEquals(response.status, 200)
         self.assertEquals(response.read(), '{"override": true }\n')
+
+    def test_binary_data(self):
+        response = TDAO().getURL('/image.jpg', {})
+        self.assertEquals(response.status, 200)
