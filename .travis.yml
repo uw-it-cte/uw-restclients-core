@@ -1,0 +1,32 @@
+sudo: false
+language: python
+python:
+- '2.7'
+- '3.4'
+- '3.5'
+- '3.6'
+before_script:
+- pip install -e .
+- pip install pep8
+- pip install nose2
+- pip install coverage
+- pip install python-coveralls
+- python travis-ci/live_server.py &
+script:
+- pep8 restclients_core
+- RUN_LIVE_TESTS=1 coverage run restclients_core/test.py -v
+after_script:
+- coveralls
+before_deploy:
+- find restclients_core/ -name \*.pyc -exec rm {} \;
+- echo $TRAVIS_TAG > restclients_core/VERSION
+deploy:
+  provider: pypi
+  server: https://pypi.python.org/pypi
+  user: uw-it-aca
+  skip_cleanup: true
+  password:
+    secure: b5gXiqGTuU7DFWYbs6WU7QZPZf2hIJgSk8kGcqNCLBUu/S/Xy8l0FqmheuQPxzzDyi7/RB+MTwC2g5SjmlUqs95YGCKxnSHGt1uUgK4M1zSALUa4SOmpyX50SA73UI2FnX0QLdK3TQhubaBY9bBR3BRd9SNEzSeSCqKA5l8OA6RRTTHxdqKK9mA/nSHz9Khvqx6weIk9+V3ma5dIu06LPDlBmiLqL4JpBw0VXO/izh3gn3CZMUTo7EFOJmh0wW6+4PIstG7paluhgYUO1TasBsGNyV3EVqTxVMAupWhU3542RCdpwApm+/KPljiaFrfgW6QgFa0CgzR2zzGlQkOtD+GgED1RRP0TjyAUtrh19OGP2q/SbZBvO4yohYxwoecepmoXWNHnMaQ1WRK/MEk73pvfMWWyXU9jY4VJP3ogSAz4ACraz68hJ0PSW4yQt5E1iGkUGs8M0SKWWPRUWvz07d7HXCyzIlwxjKa6G4+nb/O3UM+mYoMhemtmz5Gde0r/KtIJKEjtbB8khV8YVxAipzu+6io/qZcUsQX9V0WIdxGQZsEGDm0JICHy+IgD71LWkSco0QcrOZDWN+A5eWfIj48TmzyljAd55uswuMaTpGigpbFGUTdco6jFo8xCqC0PzuLAHGTQRwe1rbnY9G435yqXXKKQoPHTB+94tB3c+8w=
+  on:
+    tags: true
+    python: '3.5'
