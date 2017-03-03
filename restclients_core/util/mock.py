@@ -39,7 +39,7 @@ def load_resource_from_path(resource_dir, service_name,
         for path in paths:
             try:
                 file_path = path
-                handle = open(path)
+                handle = open(path, "rb")
                 break
             except IOError as ex:
                 pass
@@ -47,9 +47,15 @@ def load_resource_from_path(resource_dir, service_name,
         if handle is None:
             return None
 
+        data = handle.read()
+        try:
+            data = data.decode('utf-8')
+        except UnicodeDecodeError:
+            pass
+
         response = MockHTTP()
         response.status = 200
-        response.data = handle.read()
+        response.data = data
         response.headers = {"X-Data-Source": service_name + " file mock data",
                             }
 
