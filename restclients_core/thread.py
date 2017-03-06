@@ -16,8 +16,8 @@ class Thread(threading.Thread):
         # It should also work with the postgres/oracle/and so on backends,
         # but we don't use those.
         self.parent = threading.currentThread()
-        if settings.DATABASES['default']['ENGINE'] ==\
-                'django.db.backends.mysql':
+
+        if is_django_mysql():
             if hasattr(settings, "RESTCLIENTS_DISABLE_THREADING"):
                 if not settings.RESTCLIENTS_DISABLE_THREADING:
                     self._use_thread = True
@@ -48,6 +48,19 @@ class Thread(threading.Thread):
         if self._use_thread:
             return super(Thread, self).join()
 
+        return True
+
+
+def is_django_mysql():
+    db = getattr(settings, "DATABASES", None)
+    if not db:
+        return False
+
+    # ConfigParser backend
+    if isinstance(db, str) or isinstance(db, unicode):
+        return False
+
+    if db['default']['ENGINE'] == 'django.db.backends.mysql':
         return True
 
 
