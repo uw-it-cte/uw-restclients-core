@@ -22,7 +22,7 @@ setup(
     author="UW-IT AXDD",
     author_email="aca-it@uw.edu",
     include_package_data=True,
-    install_requires=['commonconf',
+    install_requires=['commonconf>=0.6',
                       'urllib3'],
     license='Apache License, Version 2.0',
     description=('Core code for clients of a variety of RESTful web services '
