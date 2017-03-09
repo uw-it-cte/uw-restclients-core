@@ -285,8 +285,11 @@ class LiveDAO(DAOImplementation):
         cert_file = self.dao.get_service_setting("CERT_FILE", None)
         ca_certs = self.dao.get_setting("CA_BUNDLE",
                                         "/etc/ssl/certs/ca-bundle.crt")
+        verify_https = self.dao.get_service_setting("VERIFY_HTTPS")
 
-        verify_https = True
+        if verify_https is None:
+            verify_https = True
+
         kwargs = {
             "timeout": socket_timeout,
             "maxsize": max_pool_size,
