@@ -11,6 +11,7 @@ try:
 except ImportError:
     from urlparse import urlparse
 import time
+import ssl
 
 
 class DAO(object):
@@ -285,6 +286,7 @@ class LiveDAO(DAOImplementation):
         ca_certs = self.dao.get_setting("CA_BUNDLE",
                                         "/etc/ssl/certs/ca-bundle.crt")
 
+        verify_https = True
         kwargs = {
             "timeout": socket_timeout,
             "maxsize": max_pool_size,
@@ -299,8 +301,7 @@ class LiveDAO(DAOImplementation):
             kwargs["ssl_version"] = ssl.PROTOCOL_TLSv1
             if verify_https:
                 kwargs["cert_reqs"] = "CERT_REQUIRED"
-                kwargs["ca_certs"] = getattr(settings, "RESTCLIENTS_CA_BUNDLE",
-                                             "/etc/ssl/certs/ca-bundle.crt")
+                kwargs["ca_certs"] = ca_certs
 
         return connection_from_url(host, **kwargs)
 

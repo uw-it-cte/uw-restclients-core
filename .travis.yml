@@ -11,7 +11,9 @@ before_script:
 - pip install nose2
 - pip install coverage
 - pip install python-coveralls
+- bash travis-ci/build_certs.sh
 - python travis-ci/live_server.py &
+- python travis-ci/live_ssl_server.py &
 script:
 - pep8 restclients_core
 - python -m compileall restclients_core/
