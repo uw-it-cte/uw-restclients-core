@@ -18,7 +18,7 @@ class myHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type','text/html')
             self.send_header('X-Custom-Header','header-test')
             self.end_headers()
-            self.wfile.write(b"ok: %s" % subject)
+            self.wfile.write(b"ok: " + subject)
             return
         elif self.path == "/403":
             self.send_response(403)
