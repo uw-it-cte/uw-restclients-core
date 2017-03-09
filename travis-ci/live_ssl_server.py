@@ -10,11 +10,15 @@ PORT_NUMBER = 9443
 class myHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/ok":
+            cert = self.request.getpeercert()
+            subject = ""
+            if cert:
+                subject = cert["subjectAltName"][0][1]
             self.send_response(200)
             self.send_header('Content-type','text/html')
             self.send_header('X-Custom-Header','header-test')
             self.end_headers()
-            self.wfile.write(b"ok")
+            self.wfile.write(b"ok: %s" % subject)
             return
         elif self.path == "/403":
             self.send_response(403)
@@ -39,5 +43,7 @@ server.socket = ssl.wrap_socket(server.socket,
                                 keyfile=key_path,
                                 certfile=cert_path,
                                 ca_certs=ca_path,
-                                server_side=True)
+                                server_side=True,
+                                cert_reqs = ssl.CERT_OPTIONAL,
+                                )
 server.serve_forever()
