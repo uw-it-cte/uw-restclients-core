@@ -11,7 +11,7 @@ class myHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/ok":
             cert = self.request.getpeercert()
-            subject = ""
+            subject = b""
             if cert:
                 subject = cert["subjectAltName"][0][1].encode("ascii")
             self.send_response(200)
