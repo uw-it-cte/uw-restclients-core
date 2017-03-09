@@ -13,7 +13,7 @@ class myHandler(BaseHTTPRequestHandler):
             cert = self.request.getpeercert()
             subject = ""
             if cert:
-                subject = cert["subjectAltName"][0][1]
+                subject = cert["subjectAltName"][0][1].encode("ascii")
             self.send_response(200)
             self.send_header('Content-type','text/html')
             self.send_header('X-Custom-Header','header-test')
