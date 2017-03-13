@@ -80,7 +80,10 @@ class Model(object):
         # This makes sure those values are removed when this object
         # is destroyed.
         for field in self._dynamic_fields:
-            field.__delete__(self)
+            try:
+                field.__delete__(self)
+            except Exception:
+                pass
 
     def clean_fields(self):
         for field in self._dynamic_fields:
