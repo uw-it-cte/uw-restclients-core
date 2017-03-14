@@ -1,4 +1,5 @@
 import datetime
+import time
 
 
 class BaseField(object):
@@ -40,7 +41,11 @@ class BaseField(object):
             del self.values[key]
 
     def _key_for_instance(self, instance):
-        return id(instance)
+        if not hasattr(instance, "__rcm_timestamp"):
+            setattr(instance, "__rcm_timestamp", time.time())
+
+        key = "%s-%s" % (id(instance), getattr(instance, "__rcm_timestamp"))
+        return key
 
     def clean(self, instance):
         pass
