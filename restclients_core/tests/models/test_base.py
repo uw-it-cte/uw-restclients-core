@@ -140,7 +140,7 @@ class TestModelBase(TestCase):
         def match_count():
             count = 0
             for obj in gc.get_objects():
-                obj_str = str(obj)
+                obj_str = repr(obj)
                 if obj_str.find('restclients_core.models.fields') >= 0:
                     count += 1
             return count
