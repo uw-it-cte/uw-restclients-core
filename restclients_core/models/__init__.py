@@ -39,23 +39,34 @@ class MockHTTP(object):
 
 
 class Model(object):
+    initialized = False
 
     def __init__(self, *args, **kwargs):
-        self._dynamic_fields = set()
-        self._field_values = {}
+        self._init()
 
         super(Model, self).__init__()
 
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
+    def _init(self):
+        # Some models overrode __init__ without calling super.  This keeps
+        # those models from failing now
+        if not self.initialized:
+            self.initialized = True
+            self._dynamic_fields = set()
+            self._field_values = {}
+
     def _set_value(self, field_id, value):
+        self._init()
         self._field_values[field_id] = value
 
     def _get_value(self, field_id):
+        self._init()
         return self._field_values[field_id]
 
     def _delete(self, field_id):
+        self._init()
         del(self._field_values[field_id])
 
     def _track_field(self, field):
