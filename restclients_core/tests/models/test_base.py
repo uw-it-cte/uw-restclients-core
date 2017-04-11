@@ -146,9 +146,11 @@ class TestModelBase(TestCase):
             return count
 
         build()
+        gc.collect()
         starting = match_count()
 
         build()
+        gc.collect()
         after_2 = match_count()
 
         self.assertEquals(starting, after_2)
