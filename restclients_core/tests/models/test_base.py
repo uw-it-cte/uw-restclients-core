@@ -5,6 +5,17 @@ import gc
 
 
 class TestModelBase(TestCase):
+    def test_override_init(self):
+        class ModelTest(models.Model):
+            bools = models.BooleanField()
+
+            def __init__(self, *args, **kwargs):
+                pass
+
+        model = ModelTest()
+        model.bools = True
+        self.assertTrue(model.bools)
+
     def test_field_types(self):
         class ModelTest(models.Model):
             bools = models.BooleanField()
