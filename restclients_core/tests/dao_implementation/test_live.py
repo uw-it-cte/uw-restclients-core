@@ -98,6 +98,7 @@ class TestLive(TestCase):
     def test_multiple_redirects(self):
         self.assertRaises(MaxRetryError, TDAO().getURL, '/redirect', {})
 
+
 @skipUnless("RUN_SSL_TESTS" in os.environ, "RUN_SSL_TESTS=1 to run tests")
 class TestLiveSSL(TestCase):
     def test_ssl_found_resource(self):
