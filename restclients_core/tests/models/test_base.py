@@ -1,9 +1,21 @@
 from unittest import TestCase
 from restclients_core import models
 from datetime import datetime
+import gc
 
 
 class TestModelBase(TestCase):
+    def test_override_init(self):
+        class ModelTest(models.Model):
+            bools = models.BooleanField()
+
+            def __init__(self, *args, **kwargs):
+                pass
+
+        model = ModelTest()
+        model.bools = True
+        self.assertTrue(model.bools)
+
     def test_field_types(self):
         class ModelTest(models.Model):
             bools = models.BooleanField()
@@ -123,3 +135,33 @@ class TestModelBase(TestCase):
 
         with self.assertRaises(AttributeError):
             m1.get_f2_display()
+
+    def test_memory_leak(self):
+        class MemTest2(models.Model):
+            pass
+
+        class MemTest(models.Model):
+            mt0 = models.ForeignKey(MemTest2)
+
+        def build():
+            m = MemTest()
+            m.mt0 = MemTest2()
+            m.mt0.x = m
+
+        def match_count():
+            count = 0
+            for obj in gc.get_objects():
+                obj_str = repr(obj)
+                if obj_str.find('restclients_core.models.fields') >= 0:
+                    count += 1
+            return count
+
+        build()
+        gc.collect()
+        starting = match_count()
+
+        build()
+        gc.collect()
+        after_2 = match_count()
+
+        self.assertEquals(starting, after_2)

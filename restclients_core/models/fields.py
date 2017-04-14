@@ -1,4 +1,5 @@
 import datetime
+import time
 
 
 class BaseField(object):
@@ -16,31 +17,29 @@ class BaseField(object):
     def __get__(self, instance, owner):
         key = self._key_for_instance(instance)
 
-        if key not in self.values:
+        field_key = self._key_for_instance(self)
+
+        try:
+            value = instance._get_value(field_key)
+            return value
+        except KeyError:
             return self.default
 
-        set_value = self.values.get(key, None)
-        return set_value
-
     def __set__(self, instance, value):
-        key = self._key_for_instance(instance)
-
-        if key not in self.dynamics:
-            instance._dynamic_fields.append(self)
-            self.dynamics.add(key)
-
-        self.values[key] = value
+        field_key = self._key_for_instance(self)
+        instance._set_value(field_key, value)
+        instance._track_field(self)
 
     def __delete__(self, instance):
-        key = self._key_for_instance(instance)
-
-        if key in self.dynamics:
-            self.dynamics.remove(key)
-        if key in self.values:
-            del self.values[key]
+        field_key = self._key_for_instance(self)
+        instance._delete(field_key)
 
     def _key_for_instance(self, instance):
-        return id(instance)
+        if not hasattr(instance, "__rcm_timestamp"):
+            setattr(instance, "__rcm_timestamp", time.time())
+
+        key = "%s-%s" % (id(instance), getattr(instance, "__rcm_timestamp"))
+        return key
 
     def clean(self, instance):
         pass

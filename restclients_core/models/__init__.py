@@ -1,4 +1,5 @@
 import re
+import weakref
 from restclients_core.models.fields import (BooleanField, CharField, DateField,
                                             DateTimeField, DecimalField,
                                             FloatField, ForeignKey,
@@ -38,15 +39,38 @@ class MockHTTP(object):
 
 
 class Model(object):
-    _dynamic_fields = []
+    initialized = False
 
     def __init__(self, *args, **kwargs):
-        self._dynamic_fields = []
+        self._init()
 
         super(Model, self).__init__()
 
         for key in kwargs:
             setattr(self, key, kwargs[key])
+
+    def _init(self):
+        # Some models overrode __init__ without calling super.  This keeps
+        # those models from failing now
+        if not self.initialized:
+            self.initialized = True
+            self._dynamic_fields = set()
+            self._field_values = {}
+
+    def _set_value(self, field_id, value):
+        self._init()
+        self._field_values[field_id] = value
+
+    def _get_value(self, field_id):
+        self._init()
+        return self._field_values[field_id]
+
+    def _delete(self, field_id):
+        self._init()
+        del(self._field_values[field_id])
+
+    def _track_field(self, field):
+        self._dynamic_fields.add(weakref.ref(field))
 
     def __getattribute__(self, name):
         # This is in place to catch get_<attribute>_display.  If there's
@@ -74,17 +98,11 @@ class Model(object):
 
         raise original_exception
 
-    def __del__(self):
-        # Fields are stored in a per-object-id dictionary.  Those ids are
-        # guaranteed to be unique - but only over the lifetime of the object.
-        # This makes sure those values are removed when this object
-        # is destroyed.
-        for field in self._dynamic_fields:
-            field.__delete__(self)
-
     def clean_fields(self):
-        for field in self._dynamic_fields:
-            field.clean(self)
+        for ref in self._dynamic_fields:
+            field = ref()
+            if field:
+                field.clean(self)
 
         pass
 
