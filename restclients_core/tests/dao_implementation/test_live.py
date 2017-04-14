@@ -1,7 +1,7 @@
 from unittest import TestCase, skipUnless
 from restclients_core.dao import DAO
+from urllib3.exceptions import MaxRetryError, SSLError
 import os
-from urllib3.exceptions import SSLError
 
 
 class TDAO(DAO):
@@ -90,6 +90,16 @@ class TestLive(TestCase):
         response = TDAO().getURL('/403', {})
         self.assertEquals(response.status, 403)
 
+    def test_one_redirect(self):
+        response = TDAO().getURL('/301', {})
+        self.assertEquals(response.status, 200)
+        self.assertEquals(response.data, b'ok')
+
+    def test_multiple_redirects(self):
+        self.assertRaises(MaxRetryError, TDAO().getURL, '/redirect', {})
+
+@skipUnless("RUN_SSL_TESTS" in os.environ, "RUN_SSL_TESTS=1 to run tests")
+class TestLiveSSL(TestCase):
     def test_ssl_found_resource(self):
         response = SSLTDAO().getURL('/ok', {})
         self.assertEquals(response.status, 200)

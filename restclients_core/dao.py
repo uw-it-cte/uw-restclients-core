@@ -6,6 +6,7 @@ from restclients_core.util.performance import PerformanceDegradation
 from importlib import import_module
 from commonconf import settings
 from urllib3 import connection_from_url
+from urllib3.util.retry import Retry
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -255,9 +256,8 @@ class LiveDAO(DAOImplementation):
         pool = self.get_pool()
         timeout = pool.timeout.read_timeout
 
-        response = pool.urlopen(method, url, body=body,
-                                headers=headers, redirect=True,
-                                retries=False, timeout=timeout)
+        response = pool.urlopen(method, url, body=body, headers=headers,
+                                timeout=timeout)
 
         return response
 
@@ -291,10 +291,11 @@ class LiveDAO(DAOImplementation):
             verify_https = True
 
         kwargs = {
+            "retries": Retry(total=1, connect=0, read=0, redirect=1),
             "timeout": socket_timeout,
             "maxsize": max_pool_size,
             "block": True,
-            }
+        }
 
         if key_file is not None and cert_file is not None:
             kwargs["key_file"] = key_file
