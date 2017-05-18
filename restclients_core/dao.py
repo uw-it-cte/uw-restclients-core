@@ -7,12 +7,15 @@ from importlib import import_module
 from commonconf import settings
 from urllib3 import connection_from_url
 from urllib3.util.retry import Retry
+from logging import getLogger
 try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
 import time
 import ssl
+
+logger = getLogger(__name__)
 
 
 class DAO(object):
@@ -150,6 +153,9 @@ class DAO(object):
                               cached=True, start_time=start_time)
                     return cache_post_response["response"]
 
+        self._log(service=service, url=url, method=method,
+                  cached=False, start_time=start_time)
+
         return response
 
     def get_cache(self):
@@ -228,7 +234,12 @@ class DAO(object):
         return config_module(*args)
 
     def _log(self, *args, **kwargs):
-        pass
+        from_cache = 'yes' if kwargs.get('cached') else 'no'
+        total_time = time.time() - kwargs.get('start_time')
+        msg = 'service:%s method:%s url:%s from_cache:%s time:%s' % (
+            kwargs.get('service'), kwargs.get('method'), kwargs.get('url'),
+            from_cache, total_time)
+        logger.info(msg)
 
 
 class DAOImplementation(object):

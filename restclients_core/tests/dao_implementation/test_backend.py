@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 from restclients_core.dao import DAO, MockDAO
 from restclients_core.models import MockHTTP
 from restclients_core.exceptions import ImproperlyConfigured
@@ -54,6 +54,26 @@ class TestBackend(TestCase):
 
     def test_error_level2(self):
         self.assertRaises(ImproperlyConfigured, E2DAO().getURL, '/ok')
+
+    @skipUnless(hasattr(TestCase, 'assertLogs'), 'Python < 3.4')
+    def test_log(self):
+        with self.assertLogs('restclients_core.dao', level='INFO') as cm:
+            response = TDAO().getURL('/ok')
+            self.assertEquals(len(cm.output), 1)
+            (msg, time) = cm.output[0].split(' time:')
+            self.assertEquals(msg,
+                              'INFO:restclients_core.dao:service:backend_test '
+                              'method:GET url:/ok from_cache:no')
+            self.assertGreater(float(time), 0)
+
+        with self.assertLogs('restclients_core.dao', level='INFO') as cm:
+            response = TDAO().putURL('/api', {}, '')
+            self.assertEquals(len(cm.output), 1)
+            (msg, time) = cm.output[0].split(' time:')
+            self.assertEquals(msg,
+                              'INFO:restclients_core.dao:service:backend_test '
+                              'method:PUT url:/api from_cache:no')
+            self.assertGreater(float(time), 0)
 
 
 class Backend(MockDAO):
