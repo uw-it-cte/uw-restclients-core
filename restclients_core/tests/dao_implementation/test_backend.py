@@ -91,6 +91,16 @@ class TestBackend(TestCase):
                               'method:GET url:/ok status:200 from_cache:yes')
             self.assertGreater(float(time), 0)
 
+        # Cached post response
+        with self.assertLogs('restclients_core.dao', level='INFO') as cm:
+            response = TCDAO().getURL('/ok2')
+            self.assertEquals(len(cm.output), 1)
+            (msg, time) = cm.output[0].split(' time:')
+            self.assertEquals(msg,
+                              'INFO:restclients_core.dao:service:backend_test '
+                              'method:GET url:/ok2 status:404 from_cache:yes')
+            self.assertGreater(float(time), 0)
+
 
 class Backend(MockDAO):
     def load(self, method, url, headers, body):
@@ -102,7 +112,12 @@ class Backend(MockDAO):
 
 class Cache(NoCache):
     def getCache(self, service, url, headers):
-        response = MockHTTP()
-        response.status = 200
-        response.data = 'ok - GET'
+        if url == '/ok':
+            response = MockHTTP()
+            response.status = 200
+            response.data = 'ok - GET'
+            return {'response': response}
+
+    def processResponse(self, service, url, response):
+        response.status = 404
         return {'response': response}
