@@ -135,6 +135,7 @@ class DAO(object):
             if cache_response:
                 if "response" in cache_response:
                     self._log(service=service, url=url, method=method,
+                              status=cache_response["response"].status,
                               cached=True, start_time=start_time)
                     return cache_response["response"]
                 if "headers" in cache_response:
@@ -150,11 +151,12 @@ class DAO(object):
             if cache_post_response is not None:
                 if "response" in cache_post_response:
                     self._log(service=service, url=url, method=method,
+                              status=cache_post_response["response"].status,
                               cached=True, start_time=start_time)
                     return cache_post_response["response"]
 
         self._log(service=service, url=url, method=method,
-                  cached=False, start_time=start_time)
+                  status=response.status, cached=False, start_time=start_time)
 
         return response
 
@@ -236,9 +238,9 @@ class DAO(object):
     def _log(self, *args, **kwargs):
         from_cache = 'yes' if kwargs.get('cached') else 'no'
         total_time = time.time() - kwargs.get('start_time')
-        msg = 'service:%s method:%s url:%s from_cache:%s time:%s' % (
+        msg = 'service:%s method:%s url:%s status:%s from_cache:%s time:%s' % (
             kwargs.get('service'), kwargs.get('method'), kwargs.get('url'),
-            from_cache, total_time)
+            kwargs.get('status'), from_cache, total_time)
         logger.info(msg)
 
 

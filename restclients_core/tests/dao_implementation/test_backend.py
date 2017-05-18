@@ -1,5 +1,6 @@
 from unittest import TestCase, skipUnless
 from restclients_core.dao import DAO, MockDAO
+from restclients_core.cache import NoCache
 from restclients_core.models import MockHTTP
 from restclients_core.exceptions import ImproperlyConfigured
 
@@ -12,6 +13,11 @@ class TDAO(DAO):
         if "DAO_CLASS" == key:
             return ('restclients_core.tests.dao_implementation.'
                     'test_backend.Backend')
+
+
+class TCDAO(TDAO):
+    def get_cache(self):
+        return Cache()
 
 
 class E1DAO(TDAO):
@@ -63,7 +69,7 @@ class TestBackend(TestCase):
             (msg, time) = cm.output[0].split(' time:')
             self.assertEquals(msg,
                               'INFO:restclients_core.dao:service:backend_test '
-                              'method:GET url:/ok from_cache:no')
+                              'method:GET url:/ok status:200 from_cache:no')
             self.assertGreater(float(time), 0)
 
         with self.assertLogs('restclients_core.dao', level='INFO') as cm:
@@ -72,14 +78,31 @@ class TestBackend(TestCase):
             (msg, time) = cm.output[0].split(' time:')
             self.assertEquals(msg,
                               'INFO:restclients_core.dao:service:backend_test '
-                              'method:PUT url:/api from_cache:no')
+                              'method:PUT url:/api status:200 from_cache:no')
+            self.assertGreater(float(time), 0)
+
+        # Cached response
+        with self.assertLogs('restclients_core.dao', level='INFO') as cm:
+            response = TCDAO().getURL('/ok')
+            self.assertEquals(len(cm.output), 1)
+            (msg, time) = cm.output[0].split(' time:')
+            self.assertEquals(msg,
+                              'INFO:restclients_core.dao:service:backend_test '
+                              'method:GET url:/ok status:200 from_cache:yes')
             self.assertGreater(float(time), 0)
 
 
 class Backend(MockDAO):
-    def load(self,  method, url, headers, body):
+    def load(self, method, url, headers, body):
         response = MockHTTP()
-        response.status == 404
+        response.status = 200
         response.data = "ok - %s" % method
-
         return response
+
+
+class Cache(NoCache):
+    def getCache(self, service, url, headers):
+        response = MockHTTP()
+        response.status = 200
+        response.data = 'ok - GET'
+        return {'response': response}
