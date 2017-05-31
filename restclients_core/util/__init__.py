@@ -7,10 +7,10 @@ except ImportError:
     from urllib.parse import quote_plus
 
 
-def format_url(base, params):
+def url_with_query(base, params):
     """
-    This is a utility method used to ensure that the query params are sorted
-    consistently between python2 and python3.
+    Takes in a base url and a group of parameters/query, and returns a
+    formatted url. Will be consistent between python 2 and 3.
     """
     return base + "?%s" % urlencode(params)
 
