@@ -1,3 +1,4 @@
+import sys
 try:
     from urllib import quote_plus
     from urllib import urlencode as urllib_encode
@@ -26,4 +27,7 @@ def urlencode(query, doseq=True, safe='', encoding=None, errors=None,
                                          for i in range(len(query) - 1)):
         query = sorted(query, key=lambda tup: tup[0])
 
-    return urllib_encode(query, doseq, safe, encoding, errors, quote_via)
+    if (sys.version_info > (3, 0)):
+        return urllib_encode(query, doseq, safe, encoding, errors, quote_via)
+    else:
+        return urllib_encode(query, doseq)
