@@ -23,8 +23,7 @@ def urlencode(query, doseq=True, safe='', encoding=None, errors=None,
     """
     if type(query) is dict:
         query = [(key, query[key]) for key in sorted(query.keys())]
-    elif type(query) is list and not all(query[i] <= query[i + 1]
-                                         for i in range(len(query) - 1)):
+    elif type(query) is list:
         query = sorted(query, key=lambda tup: tup[0])
 
     if (sys.version_info > (3, 5)):
