@@ -27,7 +27,9 @@ def urlencode(query, doseq=True, safe='', encoding=None, errors=None,
                                          for i in range(len(query) - 1)):
         query = sorted(query, key=lambda tup: tup[0])
 
-    if (sys.version_info > (3, 0)):
+    if (sys.version_info > (3, 5)):
         return urllib_encode(query, doseq, safe, encoding, errors, quote_via)
+    elif (sys.version_info == (3, 4)):
+        return urllib_encode(query, doseq, safe, encoding, errors)
     else:
         return urllib_encode(query, doseq)
