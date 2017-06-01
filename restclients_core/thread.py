@@ -52,16 +52,13 @@ class Thread(threading.Thread):
 
 
 def is_django_mysql():
-    db = getattr(settings, "DATABASES", None)
-    if not db:
-        return False
+    db = getattr(settings, 'DATABASES', None)
 
-    # ConfigParser backend
-    if isinstance(db, str) or isinstance(db, unicode):
-        return False
+    if isinstance(db, dict):
+        engine = db.get('default', {}).get('ENGINE', '')
+        return engine == 'django.db.backends.mysql'
 
-    if db['default']['ENGINE'] == 'django.db.backends.mysql':
-        return True
+    return False
 
 
 class GenericPrefetchThread(Thread):
