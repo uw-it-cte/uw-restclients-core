@@ -124,13 +124,24 @@ def attempt_open_query_permutations(url, orig_file_path):
     # check to ensure that the base url matches
     filenames = [f for f in filenames if f.startswith(base)]
 
-    for param in params:
-        param = convert_to_platform_safe(param)
+    params = [convert_to_platform_safe(p) for p in params]
 
+    for param in params:
         filenames = [f for f in filenames if param in f]
 
     if len(filenames) == 1:
-        path = join(directory, filenames[0])
-        handle = open_file(path)
+        # Ensure that the filename does not have extra params
+        intended_filename = base + "_"
+        sorted_params = sorted(params, key=lambda
+                               param: filenames[0].index(param))
+
+        for param in sorted_params:
+            intended_filename = intended_filename + param + "_"
+
+        intended_filename = intended_filename[:-1]
+
+        if (intended_filename == filenames[0]):
+            path = join(directory, filenames[0])
+            handle = open_file(path)
 
     return handle
