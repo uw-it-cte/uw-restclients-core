@@ -1,5 +1,6 @@
 import re
 import os
+from os.path import isfile, join, dirname
 import json
 try:
     from urllib.parse import unquote
@@ -22,27 +23,10 @@ def load_resource_from_path(resource_dir, service_name,
         pass
     else:
         orig_file_path = RESOURCE_ROOT + url
-        unquoted = unquote(orig_file_path)
-        paths = [
-            convert_to_platform_safe(orig_file_path),
-            "%s/index.html" % (convert_to_platform_safe(orig_file_path)),
-            orig_file_path,
-            "%s/index.html" % orig_file_path,
-            convert_to_platform_safe(unquoted),
-            "%s/index.html" % (convert_to_platform_safe(unquoted)),
-            unquoted,
-            "%s/index.html" % unquoted,
-            ]
+        handle = open_file(orig_file_path)
 
-        file_path = None
-        handle = None
-        for path in paths:
-            try:
-                file_path = path
-                handle = open(path, "rb")
-                break
-            except IOError as ex:
-                pass
+        if "?" in url and handle is None:
+            handle = attempt_open_query_permutations(url, orig_file_path)
 
         if handle is None:
             return None
@@ -84,3 +68,69 @@ def convert_to_platform_safe(dir_file_name):
     :return: a string with all the reserved characters replaced
     """
     return re.sub('[\?|<>=:*,;+&"@$]', '_', dir_file_name)
+
+
+def open_file(orig_file_path):
+    """
+    Taking in a file path, attempt to open mock data files with it.
+    """
+    unquoted = unquote(orig_file_path)
+    paths = [
+        convert_to_platform_safe(orig_file_path),
+        "%s/index.html" % (convert_to_platform_safe(orig_file_path)),
+        orig_file_path,
+        "%s/index.html" % orig_file_path,
+        convert_to_platform_safe(unquoted),
+        "%s/index.html" % (convert_to_platform_safe(unquoted)),
+        unquoted,
+        "%s/index.html" % unquoted,
+        ]
+
+    file_path = None
+    handle = None
+    for path in paths:
+        try:
+            file_path = path
+            handle = open(path, "rb")
+            break
+        except IOError as ex:
+            pass
+
+    return handle
+
+
+def attempt_open_query_permutations(url, orig_file_path):
+    """
+    Attempt to open a given mock data file with different permutations of the
+    query parameters
+    """
+    directory = dirname(convert_to_platform_safe(orig_file_path)) + "/"
+
+    # get all filenames in directory
+    try:
+        filenames = [f for f in os.listdir(directory)
+                     if isfile(join(directory, f))]
+    except OSError:
+        return
+
+    url_parts = url.split("/")
+    url_parts = url_parts[len(url_parts) - 1].split("?")
+
+    base = url_parts[0]
+    params = url_parts[1]
+
+    params = params.split("&")
+
+    # check to ensure that the base url matches
+    filenames = [f for f in filenames if f.startswith(base)]
+
+    for param in params:
+        param = convert_to_platform_safe(param)
+
+        filenames = [f for f in filenames if param in f]
+
+    if len(filenames) == 1:
+        path = join(directory, filenames[0])
+        handle = open_file(path)
+
+    return handle
