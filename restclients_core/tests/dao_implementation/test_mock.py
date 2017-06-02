@@ -50,3 +50,13 @@ class TestMock(TestCase):
     def test_binary_data(self):
         response = TDAO().getURL('/image.jpg', {})
         self.assertEquals(response.status, 200)
+
+    def test_out_of_order_params(self):
+        response = TDAO().getURL('/evaluation?term_name=Autumn&extra=param&'
+                                 'year=2014&student_id=1033334')
+        self.assertEquals(response.status, 200)
+
+    def test_extra_params(self):
+        response = TDAO().getURL('/evaluation?student_id=1033334&term_name='
+                                 'Autumn&year=2014')
+        self.assertEquals(response.status, 404)

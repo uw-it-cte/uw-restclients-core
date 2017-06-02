@@ -142,6 +142,4 @@ def attempt_open_query_permutations(url, orig_file_path):
 
         if (intended_filename == filenames[0]):
             path = join(directory, filenames[0])
-            handle = open_file(path)
-
-    return handle
+            return open_file(path)
