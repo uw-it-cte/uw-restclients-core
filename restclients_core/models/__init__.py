@@ -7,7 +7,8 @@ from restclients_core.models.fields import (BooleanField, CharField, DateField,
                                             PositiveIntegerField,
                                             PositiveSmallIntegerField,
                                             SlugField, SmallIntegerField,
-                                            TextField, TimeField, URLField)
+                                            TextField, TimeField, URLField,
+                                            BaseField)
 
 
 class MockHTTP(object):
@@ -105,5 +106,12 @@ class Model(object):
                 field.clean(self)
 
         pass
+
+    def __str__(self):
+        return ", ".join([
+            "%s: %s" % (k, getattr(self, k))
+            for k, v in sorted(self.__class__.__dict__.items())
+            if issubclass(type(v), BaseField)])
+
 
 PROTECT = None
