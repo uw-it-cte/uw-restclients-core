@@ -364,5 +364,5 @@ class MockDAO(DAOImplementation):
         response.status = 404
         response.reason = "Not Found"
 
-        set_cache_value(key, response)
+        set_cache_value(cache_key, response)
         return response
