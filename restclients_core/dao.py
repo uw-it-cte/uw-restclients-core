@@ -1,4 +1,5 @@
 from restclients_core.util.mock import load_resource_from_path
+from restclients_core.util.local_cache import set_cache_value, get_cache_value
 from restclients_core.models import MockHTTP
 from restclients_core.exceptions import ImproperlyConfigured
 from restclients_core.cache import NoCache
@@ -346,14 +347,22 @@ class MockDAO(DAOImplementation):
     def load(self, method, url, headers, body):
         service = self._service_name
 
+        cache_key = "%s-%s" % (service, url)
+        value = get_cache_value(cache_key)
+        if value:
+            return value
+
         for path in self._get_mock_paths():
             response = load_resource_from_path(path, service, "file", url,
                                                headers)
 
             if response:
+                set_cache_value(cache_key, response)
                 return response
 
         response = MockHTTP()
         response.status = 404
         response.reason = "Not Found"
+
+        set_cache_value(key, response)
         return response
