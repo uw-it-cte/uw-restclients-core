@@ -124,7 +124,7 @@ def attempt_open_query_permutations(url, orig_file_path):
     # check to ensure that the base url matches
     filenames = [f for f in filenames if f.startswith(base)]
 
-    params = [convert_to_platform_safe(p) for p in params]
+    params = [convert_to_platform_safe(unquote(p)) for p in params]
 
     for param in params:
         filenames = [f for f in filenames if param in f]
