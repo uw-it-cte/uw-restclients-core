@@ -52,11 +52,16 @@ class TestMock(TestCase):
         self.assertEquals(response.status, 200)
 
     def test_out_of_order_params(self):
-        response = TDAO().getURL('/evaluation?term_name=Autumn&extra=param&'
-                                 'year=2014&student_id=1033334')
+        response = TDAO().getURL('/search?'
+                                 'first=a&second=b&third=c&fourth=d')
         self.assertEquals(response.status, 200)
 
     def test_extra_params(self):
-        response = TDAO().getURL('/evaluation?student_id=1033334&term_name='
-                                 'Autumn&year=2014')
+        response = TDAO().getURL('/search?'
+                                 'first=a&second=b&third=c&fourth=d&fifth=e')
         self.assertEquals(response.status, 404)
+
+    def test_quoted_params(self):
+        response = TDAO().getURL('/search?'
+                                 'first=a&second=a%3Ab%3Ac')
+        self.assertEquals(response.status, 200)
