@@ -143,3 +143,10 @@ def attempt_open_query_permutations(url, orig_file_path):
         if (intended_filename == filenames[0]):
             path = join(directory, filenames[0])
             return open_file(path)
+    elif (len(filenames) > 1 ):
+        length = len(filenames[0])
+        for file in filenames:
+            if not len(file) == length:
+                return
+
+        raise Exception("There are multiple files with the same parameters!")
