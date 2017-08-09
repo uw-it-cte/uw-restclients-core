@@ -29,11 +29,12 @@ def load_resource_from_path(resource_dir, service_name,
         handle = open_file(orig_file_path)
         header_handle = open_file(orig_file_path + ".http-headers")
 
-        if "?" in url and handle is None:
+        # attempt to open query permutations even on success
+        # so that if there are multiple files we throw an exception
+        if "?" in url:
             handle = attempt_open_query_permutations(url, orig_file_path, False)
 
-
-        if "?" in url and header_handle is None:
+        if "?" in url:
             header_handle = attempt_open_query_permutations(url, orig_file_path, True)
 
         if handle is None and header_handle is None:
@@ -130,10 +131,15 @@ def attempt_open_query_permutations(url, orig_file_path, is_header_file):
     # ensure that there are not extra parameters on any files
     if is_header_file:
         filenames = [f for f in filenames if ".http-headers" in f]
-        filenames = [f for f in filenames if len(orig_file_path + ".http-headers") - len(directory) == len(f)]
+        filenames = [f for f in filenames if
+                     _compare_file_name(orig_file_path + ".http-headers",
+                                        directory,
+                                        f)]
     else:
         filenames = [f for f in filenames if ".http-headers" not in f]
-        filenames = [f for f in filenames if len(orig_file_path) - len(directory)  == len(f)]
+        filenames = [f for f in filenames if _compare_file_name(orig_file_path,
+                                                                directory,
+                                                                f)]
 
     url_parts = url.split("/")
     url_parts = url_parts[len(url_parts) - 1].split("?")
@@ -159,5 +165,11 @@ def attempt_open_query_permutations(url, orig_file_path, is_header_file):
 
     # if there is more than one file, raise an exception
     if len(filenames) > 1:
-        raise DataFailureException("Multiple mock data files matched the " +
-                                   "parameters provided!")
+        raise DataFailureException(url,
+                                   "Multiple mock data files matched the " +
+                                   "parameters provided!",
+                                   404)
+
+
+def _compare_file_name(orig_file_path, directory, filename):
+    return len(unquote(orig_file_path)) - len(directory) == len(filename)
