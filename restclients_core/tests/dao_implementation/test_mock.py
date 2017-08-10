@@ -2,6 +2,7 @@ from unittest import TestCase
 from restclients_core.dao import DAO
 from os.path import abspath, dirname
 from restclients_core.dao import MockDAO
+from restclients_core.exceptions import DataFailureException
 
 
 class TDAO(DAO):
@@ -65,3 +66,13 @@ class TestMock(TestCase):
         response = TDAO().getURL('/search?'
                                  'first=a&second=a%3Ab%3Ac')
         self.assertEquals(response.status, 200)
+
+    def test_no_body_file(self):
+        response = TDAO().getURL('/search?'
+                                 'first=abc')
+        self.assertEquals(response.status, 200)
+
+    def test_multiple_files(self):
+        with self.assertRaises(DataFailureException):
+            TDAO().getURL('/search?'
+                          'first=a&second=b')
