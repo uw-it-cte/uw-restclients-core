@@ -2,6 +2,9 @@ import re
 import os
 from os.path import isfile, join, dirname
 import json
+
+from restclients_core.exceptions import DataFailureException
+
 try:
     from urllib.parse import unquote
 except ImportError:
@@ -24,40 +27,54 @@ def load_resource_from_path(resource_dir, service_name,
     else:
         orig_file_path = RESOURCE_ROOT + url
         handle = open_file(orig_file_path)
+        header_handle = open_file(orig_file_path + ".http-headers")
 
-        if "?" in url and handle is None:
-            handle = attempt_open_query_permutations(url, orig_file_path)
+        # attempt to open query permutations even on success
+        # so that if there are multiple files we throw an exception
+        if "?" in url:
+            handle = attempt_open_query_permutations(url, orig_file_path,
+                                                     False)
 
-        if handle is None:
+        if "?" in url:
+            header_handle = attempt_open_query_permutations(url,
+                                                            orig_file_path,
+                                                            True)
+
+        if handle is None and header_handle is None:
             return None
 
-        data = handle.read()
-        try:
-            data = data.decode('utf-8')
-        except UnicodeDecodeError:
-            pass
+        if handle is not None:
+            data = handle.read()
+            try:
+                data = data.decode('utf-8')
+            except UnicodeDecodeError:
+                pass
 
         response = MockHTTP()
         response.status = 200
-        response.data = data
+        if handle is not None:
+            response.data = data
         response.headers = {"X-Data-Source": service_name + " file mock data",
                             }
 
-        try:
-            headers = open(handle.name + '.http-headers')
-            file_values = json.loads(headers.read())
+        if header_handle is not None:
+            try:
+                data = header_handle.read()
+                data = data.decode('utf-8')
+                file_values = json.loads(data)
 
-            if "headers" in file_values:
-                response.headers.update(file_values['headers'])
+                if "headers" in file_values:
+                    response.headers.update(file_values['headers'])
 
-                if 'status' in file_values:
-                    response.status = file_values['status']
+                    if 'status' in file_values:
+                        response.status = file_values['status']
 
-            else:
-                response.headers.update(file_values)
-
-        except IOError:
-            pass
+                else:
+                    response.headers.update(file_values)
+            except UnicodeDecodeError:
+                pass
+            except IOError:
+                pass
 
         return response
 
@@ -99,7 +116,7 @@ def open_file(orig_file_path):
     return handle
 
 
-def attempt_open_query_permutations(url, orig_file_path):
+def attempt_open_query_permutations(url, orig_file_path, is_header_file):
     """
     Attempt to open a given mock data file with different permutations of the
     query parameters
@@ -112,6 +129,19 @@ def attempt_open_query_permutations(url, orig_file_path):
                      if isfile(join(directory, f))]
     except OSError:
         return
+
+    # ensure that there are not extra parameters on any files
+    if is_header_file:
+        filenames = [f for f in filenames if ".http-headers" in f]
+        filenames = [f for f in filenames if
+                     _compare_file_name(orig_file_path + ".http-headers",
+                                        directory,
+                                        f)]
+    else:
+        filenames = [f for f in filenames if ".http-headers" not in f]
+        filenames = [f for f in filenames if _compare_file_name(orig_file_path,
+                                                                directory,
+                                                                f)]
 
     url_parts = url.split("/")
     url_parts = url_parts[len(url_parts) - 1].split("?")
@@ -126,20 +156,22 @@ def attempt_open_query_permutations(url, orig_file_path):
 
     params = [convert_to_platform_safe(unquote(p)) for p in params]
 
+    # ensure that all parameters are there
     for param in params:
         filenames = [f for f in filenames if param in f]
 
+    # if we only have one file, return it
     if len(filenames) == 1:
-        # Ensure that the filename does not have extra params
-        intended_filename = base + "_"
-        sorted_params = sorted(params, key=lambda
-                               param: filenames[0].index(param))
+        path = join(directory, filenames[0])
+        return open_file(path)
 
-        for param in sorted_params:
-            intended_filename = intended_filename + param + "_"
+    # if there is more than one file, raise an exception
+    if len(filenames) > 1:
+        raise DataFailureException(url,
+                                   "Multiple mock data files matched the " +
+                                   "parameters provided!",
+                                   404)
 
-        intended_filename = intended_filename[:-1]
 
-        if (intended_filename == filenames[0]):
-            path = join(directory, filenames[0])
-            return open_file(path)
+def _compare_file_name(orig_file_path, directory, filename):
+    return len(unquote(orig_file_path)) - len(directory) == len(filename)
