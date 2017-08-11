@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skipIf
 from restclients_core.dao import DAO
 from os.path import abspath, dirname
 from restclients_core.dao import MockDAO
@@ -76,3 +76,16 @@ class TestMock(TestCase):
         with self.assertRaises(DataFailureException):
             TDAO().getURL('/search?'
                           'first=a&second=b')
+
+    def test_quote_in_file_path(self):
+        response = TDAO().getURL('/test%3folder/test.json')
+        self.assertEquals(response.status, 200)
+
+    def test_quote_in_file_path_and_file(self):
+        response = TDAO().getURL('/test%3folder/test.json')
+        self.assertEquals(response.status, 200)
+
+    @skipIf(True, "I'm not sure that this case actually exists - ezturner")
+    def test_quote_in_file_path_and_url_but_not_file(self):
+        response = TDAO().getURL('/test%3folder/test%3man.json')
+        self.assertEquals(response.status, 200)

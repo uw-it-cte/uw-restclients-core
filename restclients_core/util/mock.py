@@ -174,4 +174,5 @@ def attempt_open_query_permutations(url, orig_file_path, is_header_file):
 
 
 def _compare_file_name(orig_file_path, directory, filename):
-    return len(unquote(orig_file_path)) - len(directory) == len(filename)
+    return (len(unquote(orig_file_path)) - len(unquote(directory)) ==
+            len(unquote(filename)))
