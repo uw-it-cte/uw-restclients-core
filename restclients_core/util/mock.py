@@ -32,8 +32,7 @@ def load_resource_from_path(resource_dir, service_name,
         # attempt to open query permutations even on success
         # so that if there are multiple files we throw an exception
         if "?" in url:
-            handle = attempt_open_query_permutations(url, orig_file_path,
-                                                     False)
+            handle = attempt_open_query_permutations(url, orig_file_path, False)
 
         if "?" in url:
             header_handle = attempt_open_query_permutations(url,
@@ -84,7 +83,7 @@ def convert_to_platform_safe(dir_file_name):
     :param dir_file_name: a string to be processed
     :return: a string with all the reserved characters replaced
     """
-    return re.sub('[\?|<>=:*,;+&"@$]', '_', dir_file_name)
+    return re.sub('[\?|<>=:*,;+&"@$%]', '_', dir_file_name)
 
 
 def open_file(orig_file_path):
@@ -94,13 +93,7 @@ def open_file(orig_file_path):
     unquoted = unquote(orig_file_path)
     paths = [
         convert_to_platform_safe(orig_file_path),
-        "%s/index.html" % (convert_to_platform_safe(orig_file_path)),
-        orig_file_path,
-        "%s/index.html" % orig_file_path,
-        convert_to_platform_safe(unquoted),
-        "%s/index.html" % (convert_to_platform_safe(unquoted)),
-        unquoted,
-        "%s/index.html" % unquoted,
+        "%s/index.html" % (convert_to_platform_safe(orig_file_path))
         ]
 
     file_path = None
@@ -154,7 +147,7 @@ def attempt_open_query_permutations(url, orig_file_path, is_header_file):
     # check to ensure that the base url matches
     filenames = [f for f in filenames if f.startswith(base)]
 
-    params = [convert_to_platform_safe(unquote(p)) for p in params]
+    params = [convert_to_platform_safe(p) for p in params]
 
     # ensure that all parameters are there
     for param in params:
@@ -174,5 +167,5 @@ def attempt_open_query_permutations(url, orig_file_path, is_header_file):
 
 
 def _compare_file_name(orig_file_path, directory, filename):
-    return (len(unquote(orig_file_path)) - len(unquote(directory)) ==
-            len(unquote(filename)))
+    return len(orig_file_path) - len(directory) == len(filename)
+

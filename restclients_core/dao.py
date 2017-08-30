@@ -1,3 +1,5 @@
+import urllib
+
 from restclients_core.util.mock import load_resource_from_path
 from restclients_core.util.local_cache import set_cache_value, get_cache_value
 from restclients_core.models import MockHTTP
@@ -73,6 +75,19 @@ class DAO(object):
         value when passed 'HOST'.
         """
         return None
+
+    def get(self, url, headers={}, params={}):
+        """
+        Pass an unencoded URL, headers, and params and this method will
+        request a URL
+        :param url:
+        :param headers:
+        :param params:
+        :return:
+        """
+        url = self._process_url(url, params)
+
+        return self._load_resource("GET", url, headers, None)
 
     def getURL(self, url, headers={}):
         """
@@ -243,6 +258,12 @@ class DAO(object):
             kwargs.get('service'), kwargs.get('method'), kwargs.get('url'),
             kwargs.get('status'), from_cache, total_time)
         logger.info(msg)
+
+    def _process_url(self, url, params={}):
+        url = urllib.quote(url)
+        params = urllib.urlencode(params)
+
+        return "%s?%s" % (url, params)
 
 
 class DAOImplementation(object):
