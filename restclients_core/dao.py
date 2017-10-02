@@ -240,7 +240,7 @@ class DAO(object):
 
     def _log(self, *args, **kwargs):
         log_timing = self.get_setting("TIMING_LOG_ENABLED", False)
-        logging_rate = self.get_setting("TIMING_LOG_RATE", 1.0)
+        logging_rate = float(self.get_setting("TIMING_LOG_RATE", 1.0))
 
         if log_timing and random.random() <= logging_rate:
             from_cache = 'yes' if kwargs.get('cached') else 'no'
