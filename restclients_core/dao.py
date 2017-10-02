@@ -245,7 +245,8 @@ class DAO(object):
         if log_timing and random.random() <= logging_rate:
             from_cache = 'yes' if kwargs.get('cached') else 'no'
             total_time = time.time() - kwargs.get('start_time')
-            msg = ('service:%s method:%s url:%s status:%s from_cache:%s time:%s'
+            msg = (('service:%s method:%s url:%s status:%s from_cache:%s' +
+                   ' time:%s')
                    % (kwargs.get('service'), kwargs.get('method'),
                       kwargs.get('url'), kwargs.get('status'),
                       from_cache, total_time))
