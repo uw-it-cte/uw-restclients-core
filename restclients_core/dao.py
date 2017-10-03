@@ -1,3 +1,5 @@
+import random
+
 from restclients_core.util.mock import load_resource_from_path
 from restclients_core.util.local_cache import set_cache_value, get_cache_value
 from restclients_core.models import MockHTTP
@@ -237,12 +239,18 @@ class DAO(object):
         return config_module(*args)
 
     def _log(self, *args, **kwargs):
-        from_cache = 'yes' if kwargs.get('cached') else 'no'
-        total_time = time.time() - kwargs.get('start_time')
-        msg = 'service:%s method:%s url:%s status:%s from_cache:%s time:%s' % (
-            kwargs.get('service'), kwargs.get('method'), kwargs.get('url'),
-            kwargs.get('status'), from_cache, total_time)
-        logger.info(msg)
+        log_timing = self.get_setting("TIMING_LOG_ENABLED", False)
+        logging_rate = float(self.get_setting("TIMING_LOG_RATE", 1.0))
+
+        if log_timing and random.random() <= logging_rate:
+            from_cache = 'yes' if kwargs.get('cached') else 'no'
+            total_time = time.time() - kwargs.get('start_time')
+            msg = (('service:%s method:%s url:%s status:%s from_cache:%s' +
+                   ' time:%s')
+                   % (kwargs.get('service'), kwargs.get('method'),
+                      kwargs.get('url'), kwargs.get('status'),
+                      from_cache, total_time))
+            logger.info(msg)
 
 
 class DAOImplementation(object):
