@@ -1,8 +1,11 @@
 from unittest import TestCase, skipUnless
+from unittest.mock import patch
+
 from restclients_core.dao import DAO, MockDAO
 from restclients_core.cache import NoCache
 from restclients_core.models import MockHTTP
 from restclients_core.exceptions import ImproperlyConfigured
+from commonconf.util import override_settings
 
 
 class TDAO(DAO):
@@ -34,6 +37,7 @@ class E2DAO(TDAO):
                     'test_backend.BackendX')
 
 
+@override_settings(RESTCLIENTS_TIMING_LOG_ENABLED=True)
 class TestBackend(TestCase):
     def test_get(self):
         response = TDAO().getURL('/ok')
@@ -102,6 +106,15 @@ class TestBackend(TestCase):
             self.assertGreater(float(time), 0)
 
 
+@override_settings(RESTCLIENTS_TIMING_LOG_ENABLED=False)
+class TestNoTimingLog(TestCase):
+    @skipUnless(hasattr(TestCase, 'assertLogs'), 'Python < 3.4')
+    def test_log(self):
+        with patch('restclients_core.dao.logger.info') as mock_log:
+            response = TCDAO().getURL('/ok2')
+            self.assertFalse(mock_log.called)
+
+
 class Backend(MockDAO):
     def load(self, method, url, headers, body):
         response = MockHTTP()
@@ -121,3 +134,4 @@ class Cache(NoCache):
     def processResponse(self, service, url, response):
         response.status = 404
         return {'response': response}
+
