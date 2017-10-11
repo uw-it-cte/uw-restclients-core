@@ -16,7 +16,7 @@ before_script:
 - python travis-ci/live_ssl_server.py &
 - python travis-ci/live_ssl_bad_server.py &
 script:
-- pep8 restclients_core
+- pep8 restclients_core --exclude=restclients_core/tests
 - python -m compileall restclients_core/
 - RUN_LIVE_TESTS=1 RUN_SSL_TESTS=1 coverage run restclients_core/test.py -v
 after_script:

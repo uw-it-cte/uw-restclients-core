@@ -227,7 +227,7 @@ class DAO(object):
         restclient_key = "RESTCLIENTS_%s" % key
         service_key = "%s_%s" % (self.service_name().upper(), key)
 
-        if hasattr(service_key, settings):
+        if hasattr(settings, key):
             return self.get_setting(service_key, default)
         else:
             return self.get_setting(restclient_key, default)
