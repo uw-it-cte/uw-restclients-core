@@ -1,5 +1,7 @@
 import random
 
+import datetime
+
 from restclients_core.util.mock import load_resource_from_path
 from restclients_core.util.local_cache import set_cache_value, get_cache_value
 from restclients_core.models import MockHTTP
@@ -221,6 +223,15 @@ class DAO(object):
         key = "RESTCLIENTS_%s" % key
         return getattr(settings, key, default)
 
+    def get_overridable_setting(self, key, default):
+        restclient_key = "RESTCLIENTS_%s" % key
+        service_key = "%s_%s" % (self.service_name().upper(), key)
+
+        if hasattr(service_key, settings):
+            return self.get_setting(service_key, default)
+        else:
+            return self.get_setting(restclient_key, default)
+
     def _getModule(self, value, default_class, args=[]):
         if not value:
             return default_class()
@@ -239,18 +250,38 @@ class DAO(object):
         return config_module(*args)
 
     def _log(self, *args, **kwargs):
-        log_timing = self.get_setting("TIMING_LOG_ENABLED", False)
-        logging_rate = float(self.get_setting("TIMING_LOG_RATE", 1.0))
+        if not self.should_log():
+            return
 
-        if log_timing and random.random() <= logging_rate:
-            from_cache = 'yes' if kwargs.get('cached') else 'no'
-            total_time = time.time() - kwargs.get('start_time')
-            msg = (('service:%s method:%s url:%s status:%s from_cache:%s' +
-                   ' time:%s')
-                   % (kwargs.get('service'), kwargs.get('method'),
-                      kwargs.get('url'), kwargs.get('status'),
-                      from_cache, total_time))
-            logger.info(msg)
+        from_cache = 'yes' if kwargs.get('cached') else 'no'
+        total_time = time.time() - kwargs.get('start_time')
+        msg = (('service:%s method:%s url:%s status:%s from_cache:%s' +
+               ' time:%s')
+               % (kwargs.get('service'), kwargs.get('method'),
+                  kwargs.get('url'), kwargs.get('status'),
+                  from_cache, total_time))
+        logger.info(msg)
+
+    def should_log(self):
+        log_timing = self.get_overridable_setting("TIMING_LOG_ENABLED", False)
+        logging_rate = float(self.get_overridable_setting("TIMING_LOG_RATE",
+                                                          1.0))
+
+        # format is ISO 8601
+        log_start = self.get_overridable_setting("TIMING_START", None)
+        log_end = self.get_overridable_setting("TIMING_END", None)
+
+        if log_start is not None and log_end is not None:
+            if not log_start < datetime.datetime.now() < log_end:
+                return False
+
+        if not log_timing:
+            return False
+
+        if random.random() >= logging_rate:
+            return False
+
+        return True
 
 
 class DAOImplementation(object):
