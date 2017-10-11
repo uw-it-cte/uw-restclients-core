@@ -13,6 +13,7 @@ from commonconf import settings
 from urllib3 import connection_from_url
 from urllib3.util.retry import Retry
 from logging import getLogger
+import dateutil.parser
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -268,10 +269,12 @@ class DAO(object):
                                                           1.0))
 
         # format is ISO 8601
-        log_start = self.get_overridable_setting("TIMING_START", None)
-        log_end = self.get_overridable_setting("TIMING_END", None)
+        log_start_str = self.get_overridable_setting("TIMING_START", None)
+        log_end_str = self.get_overridable_setting("TIMING_END", None)
 
-        if log_start is not None and log_end is not None:
+        if log_start_str is not None and log_end_str is not None:
+            log_start = dateutil.parser.parse(log_start_str)
+            log_end = dateutil.parser.parse(log_end_str)
             if not log_start < datetime.datetime.now() < log_end:
                 return False
 
