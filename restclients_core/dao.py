@@ -225,13 +225,12 @@ class DAO(object):
         return getattr(settings, key, default)
 
     def get_overridable_setting(self, key, default):
-        restclient_key = "RESTCLIENTS_%s" % key
-        service_key = "%s_%s" % (self.service_name().upper(), key)
+        service_key = "RESTCLIENTS_%s_%s" % (self.service_name().upper(), key)
 
-        if hasattr(settings, key):
-            return self.get_setting(service_key, default)
+        if hasattr(settings, service_key):
+            return getattr(settings, service_key, default)
         else:
-            return self.get_setting(restclient_key, default)
+            return self.get_setting(key, default)
 
     def _getModule(self, value, default_class, args=[]):
         if not value:
