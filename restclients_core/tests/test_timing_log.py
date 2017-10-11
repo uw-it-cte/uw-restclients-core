@@ -1,9 +1,7 @@
-from unittest import TestCase, skipUnless
-
-import datetime
-from commonconf import override_settings
-
 from restclients_core.tests.dao_implementation.test_backend import TDAO
+from unittest import TestCase, skipUnless
+from commonconf import override_settings
+import datetime
 
 
 class TestTimingLog(TestCase):

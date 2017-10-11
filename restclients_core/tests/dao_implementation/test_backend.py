@@ -1,7 +1,5 @@
 from unittest import TestCase, skipUnless
-
 from commonconf import override_settings
-
 from restclients_core.dao import DAO, MockDAO
 from restclients_core.cache import NoCache
 from restclients_core.models import MockHTTP
