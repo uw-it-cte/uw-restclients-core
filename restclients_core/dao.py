@@ -215,20 +215,16 @@ class DAO(object):
         if default is None:
             default = self.get_default_service_setting(key)
 
-        return self.get_setting("%s_%s" % (self.service_name().upper(), key),
-                                default)
-
-    def get_setting(self, key, default=None):
-        key = "RESTCLIENTS_%s" % key
-        return getattr(settings, key, default)
-
-    def get_overridable_setting(self, key, default):
-        service_key = "RESTCLIENTS_%s_%s" % (self.service_name().upper(), key)
+        service_key = "%s_%s" % (self.service_name().upper(), key)
 
         if hasattr(settings, service_key):
             return getattr(settings, service_key, default)
         else:
             return self.get_setting(key, default)
+
+    def get_setting(self, key, default=None):
+        key = "RESTCLIENTS_%s" % key
+        return getattr(settings, key, default)
 
     def _getModule(self, value, default_class, args=[]):
         if not value:
@@ -261,13 +257,12 @@ class DAO(object):
         logger.info(msg)
 
     def should_log(self):
-        log_timing = self.get_overridable_setting("TIMING_LOG_ENABLED", False)
-        logging_rate = float(self.get_overridable_setting("TIMING_LOG_RATE",
-                                                          1.0))
+        log_timing = self.get_service_setting("TIMING_LOG_ENABLED", False)
+        logging_rate = float(self.get_service_setting("TIMING_LOG_RATE", 1.0))
 
         # format is ISO 8601
-        log_start_str = self.get_overridable_setting("TIMING_START", None)
-        log_end_str = self.get_overridable_setting("TIMING_END", None)
+        log_start_str = self.get_service_setting("TIMING_START", None)
+        log_end_str = self.get_service_setting("TIMING_END", None)
 
         if log_start_str is not None and log_end_str is not None:
             log_start = dateutil.parser.parse(log_start_str)
