@@ -29,6 +29,21 @@ class DAO(object):
     def __init__(self):
         self.implementation = None
 
+        # format is ISO 8601
+        log_start_str = self.get_service_setting("TIMING_START", None)
+        log_end_str = self.get_service_setting("TIMING_END", None)
+
+        if log_start_str is not None and log_end_str is not None:
+            self.log_start = dateutil.parser.parse(log_start_str)
+            self.log_end = dateutil.parser.parse(log_end_str)
+        else:
+            self.log_start = None
+            self.log_end = None
+
+        self.log_timing = self.get_service_setting("TIMING_LOG_ENABLED", False)
+        self.logging_rate = float(self.get_service_setting("TIMING_LOG_RATE",
+                                                           1.0))
+
     def service_name(self):
         """
         This method must be overridden to define your service's short name.
@@ -257,23 +272,15 @@ class DAO(object):
         logger.info(msg)
 
     def should_log(self):
-        log_timing = self.get_service_setting("TIMING_LOG_ENABLED", False)
-        logging_rate = float(self.get_service_setting("TIMING_LOG_RATE", 1.0))
 
-        # format is ISO 8601
-        log_start_str = self.get_service_setting("TIMING_START", None)
-        log_end_str = self.get_service_setting("TIMING_END", None)
-
-        if log_start_str is not None and log_end_str is not None:
-            log_start = dateutil.parser.parse(log_start_str)
-            log_end = dateutil.parser.parse(log_end_str)
-            if not log_start < datetime.datetime.now() < log_end:
+        if self.log_start is not None and self.log_end is not None:
+            if not self.log_start < datetime.datetime.now() < self.log_end:
                 return False
 
-        if not log_timing:
+        if not self.log_timing:
             return False
 
-        if random.random() >= logging_rate:
+        if random.random() >= self.logging_rate:
             return False
 
         return True
