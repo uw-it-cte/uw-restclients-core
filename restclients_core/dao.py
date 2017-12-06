@@ -264,10 +264,11 @@ class DAO(object):
 
         from_cache = 'yes' if kwargs.get('cached') else 'no'
         response = kwargs.get('response')
-        cache_class = (response.cache_class if from_cache else None)
+        cache_class = (response.cache_class if hasattr(response, 'cache_class')
+                       else None)
         total_time = time.time() - kwargs.get('start_time')
-        msg = (('service:%s method:%s url:%s status:%s from_cache:%s' +
-               ' cache_class:%s time:%s')
+        msg = (('service:%s method:%s url:%s status:%s from_cache:%s ' +
+               'cache_class:%s time:%s')
                % (kwargs.get('service'), kwargs.get('method'),
                   kwargs.get('url'), response.status,
                   from_cache, cache_class, total_time))
