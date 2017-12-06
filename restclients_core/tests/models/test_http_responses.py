@@ -17,4 +17,4 @@ class SubClassTest(TestCacheHTTP):
         obj = CacheHTTP()
 
         obj.cache_class = self.__class__
-        self.assertEquals(obj.get_cache_class(), SubClassTest.__class__)
+        self.assertEquals(obj.get_cache_class(), SubClassTest)
