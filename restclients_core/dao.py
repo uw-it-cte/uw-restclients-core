@@ -1,5 +1,5 @@
 import random
-
+import datetime
 from restclients_core.util.mock import load_resource_from_path
 from restclients_core.util.local_cache import set_cache_value, get_cache_value
 from restclients_core.models import MockHTTP
@@ -11,6 +11,7 @@ from commonconf import settings
 from urllib3 import connection_from_url
 from urllib3.util.retry import Retry
 from logging import getLogger
+import dateutil.parser
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -27,6 +28,21 @@ class DAO(object):
     """
     def __init__(self):
         self.implementation = None
+
+        # format is ISO 8601
+        log_start_str = self.get_service_setting("TIMING_START", None)
+        log_end_str = self.get_service_setting("TIMING_END", None)
+
+        if log_start_str is not None and log_end_str is not None:
+            self.log_start = dateutil.parser.parse(log_start_str)
+            self.log_end = dateutil.parser.parse(log_end_str)
+        else:
+            self.log_start = None
+            self.log_end = None
+
+        self.log_timing = self.get_service_setting("TIMING_LOG_ENABLED", False)
+        self.logging_rate = float(self.get_service_setting("TIMING_LOG_RATE",
+                                                           1.0))
 
     def service_name(self):
         """
@@ -214,8 +230,12 @@ class DAO(object):
         if default is None:
             default = self.get_default_service_setting(key)
 
-        return self.get_setting("%s_%s" % (self.service_name().upper(), key),
-                                default)
+        service_key = "%s_%s" % (self.service_name().upper(), key)
+
+        if hasattr(settings, service_key):
+            return getattr(settings, service_key, default)
+        else:
+            return self.get_setting(key, default)
 
     def get_setting(self, key, default=None):
         key = "RESTCLIENTS_%s" % key
@@ -239,18 +259,31 @@ class DAO(object):
         return config_module(*args)
 
     def _log(self, *args, **kwargs):
-        log_timing = self.get_setting("TIMING_LOG_ENABLED", False)
-        logging_rate = float(self.get_setting("TIMING_LOG_RATE", 1.0))
+        if not self.should_log():
+            return
 
-        if log_timing and random.random() <= logging_rate:
-            from_cache = 'yes' if kwargs.get('cached') else 'no'
-            total_time = time.time() - kwargs.get('start_time')
-            msg = (('service:%s method:%s url:%s status:%s from_cache:%s' +
-                   ' time:%s')
-                   % (kwargs.get('service'), kwargs.get('method'),
-                      kwargs.get('url'), kwargs.get('status'),
-                      from_cache, total_time))
-            logger.info(msg)
+        from_cache = 'yes' if kwargs.get('cached') else 'no'
+        total_time = time.time() - kwargs.get('start_time')
+        msg = (('service:%s method:%s url:%s status:%s from_cache:%s' +
+               ' time:%s')
+               % (kwargs.get('service'), kwargs.get('method'),
+                  kwargs.get('url'), kwargs.get('status'),
+                  from_cache, total_time))
+        logger.info(msg)
+
+    def should_log(self):
+
+        if self.log_start is not None and self.log_end is not None:
+            if not self.log_start < datetime.datetime.now() < self.log_end:
+                return False
+
+        if not self.log_timing:
+            return False
+
+        if random.random() >= self.logging_rate:
+            return False
+
+        return True
 
 
 class DAOImplementation(object):

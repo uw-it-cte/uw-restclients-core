@@ -1,4 +1,5 @@
 from unittest import TestCase, skipUnless
+from commonconf import override_settings
 from restclients_core.dao import DAO, MockDAO
 from restclients_core.cache import NoCache
 from restclients_core.models import MockHTTP
@@ -62,6 +63,8 @@ class TestBackend(TestCase):
         self.assertRaises(ImproperlyConfigured, E2DAO().getURL, '/ok')
 
     @skipUnless(hasattr(TestCase, 'assertLogs'), 'Python < 3.4')
+    @override_settings(RESTCLIENTS_TIMING_LOG_ENABLED=True,
+                       RESTCLIENTS_TIMING_LOG_RATE=1.0)
     def test_log(self):
         with self.assertLogs('restclients_core.dao', level='INFO') as cm:
             response = TDAO().getURL('/ok')
