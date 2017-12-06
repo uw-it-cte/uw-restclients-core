@@ -39,6 +39,18 @@ class MockHTTP(object):
         return default
 
 
+class CacheHTTP(MockHTTP):
+    """
+    A class which implements the interface of HTTPResponse but signals to
+    clients that the object they are receiving is from a cache.
+    """
+
+    cache_class = None
+
+    def get_cache_class(self):
+        return self.cache_class
+
+
 class Model(object):
     initialized = False
 
