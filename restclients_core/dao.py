@@ -2,7 +2,7 @@ import random
 import datetime
 from restclients_core.util.mock import load_resource_from_path
 from restclients_core.util.local_cache import set_cache_value, get_cache_value
-from restclients_core.models import MockHTTP
+from restclients_core.models import MockHTTP, CacheHTTP
 from restclients_core.exceptions import ImproperlyConfigured
 from restclients_core.cache import NoCache
 from restclients_core.util.performance import PerformanceDegradation
@@ -154,7 +154,7 @@ class DAO(object):
             if cache_response:
                 if "response" in cache_response:
                     self._log(service=service, url=url, method=method,
-                              status=cache_response["response"].status,
+                              response=cache_response["response"],
                               cached=True, start_time=start_time)
                     return cache_response["response"]
                 if "headers" in cache_response:
@@ -170,12 +170,12 @@ class DAO(object):
             if cache_post_response is not None:
                 if "response" in cache_post_response:
                     self._log(service=service, url=url, method=method,
-                              status=cache_post_response["response"].status,
-                              cached=True, start_time=start_time)
+                              response=response, cached=True,
+                              start_time=start_time)
                     return cache_post_response["response"]
 
-        self._log(service=service, url=url, method=method,
-                  status=response.status, cached=False, start_time=start_time)
+        self._log(service=service, url=url, method=method, response=response,
+                  cached=False, start_time=start_time)
 
         return response
 
@@ -263,12 +263,15 @@ class DAO(object):
             return
 
         from_cache = 'yes' if kwargs.get('cached') else 'no'
+        response = kwargs.get('response')
+        cache_class = (response.cache_class if hasattr(response, 'cache_class')
+                       else "None")
         total_time = time.time() - kwargs.get('start_time')
-        msg = (('service:%s method:%s url:%s status:%s from_cache:%s' +
-               ' time:%s')
+        msg = (('service:%s method:%s url:%s status:%s from_cache:%s ' +
+               'cache_class:%s time:%s')
                % (kwargs.get('service'), kwargs.get('method'),
-                  kwargs.get('url'), kwargs.get('status'),
-                  from_cache, total_time))
+                  kwargs.get('url'), response.status,
+                  from_cache, cache_class, total_time))
         logger.info(msg)
 
     def should_log(self):
