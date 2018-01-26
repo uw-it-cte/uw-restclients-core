@@ -1,7 +1,8 @@
 from unittest import TestCase, skipUnless
+from commonconf import override_settings
 from restclients_core.dao import DAO, MockDAO
 from restclients_core.cache import NoCache
-from restclients_core.models import MockHTTP
+from restclients_core.models import MockHTTP, CacheHTTP
 from restclients_core.exceptions import ImproperlyConfigured
 
 
@@ -62,6 +63,8 @@ class TestBackend(TestCase):
         self.assertRaises(ImproperlyConfigured, E2DAO().getURL, '/ok')
 
     @skipUnless(hasattr(TestCase, 'assertLogs'), 'Python < 3.4')
+    @override_settings(RESTCLIENTS_TIMING_LOG_ENABLED=True,
+                       RESTCLIENTS_TIMING_LOG_RATE=1.0)
     def test_log(self):
         with self.assertLogs('restclients_core.dao', level='INFO') as cm:
             response = TDAO().getURL('/ok')
@@ -69,7 +72,8 @@ class TestBackend(TestCase):
             (msg, time) = cm.output[0].split(' time:')
             self.assertEquals(msg,
                               'INFO:restclients_core.dao:service:backend_test '
-                              'method:GET url:/ok status:200 from_cache:no')
+                              'method:GET url:/ok status:200 from_cache:no'
+                              ' cache_class:None')
             self.assertGreater(float(time), 0)
 
         with self.assertLogs('restclients_core.dao', level='INFO') as cm:
@@ -78,7 +82,8 @@ class TestBackend(TestCase):
             (msg, time) = cm.output[0].split(' time:')
             self.assertEquals(msg,
                               'INFO:restclients_core.dao:service:backend_test '
-                              'method:PUT url:/api status:200 from_cache:no')
+                              'method:PUT url:/api status:200 from_cache:no'
+                              ' cache_class:None')
             self.assertGreater(float(time), 0)
 
         # Cached response
@@ -88,7 +93,9 @@ class TestBackend(TestCase):
             (msg, time) = cm.output[0].split(' time:')
             self.assertEquals(msg,
                               'INFO:restclients_core.dao:service:backend_test '
-                              'method:GET url:/ok status:200 from_cache:yes')
+                              'method:GET url:/ok status:200 from_cache:yes'
+                              ' cache_class:<class \'restclients_core.tests'
+                              '.dao_implementation.test_backend.Cache\'>')
             self.assertGreater(float(time), 0)
 
         # Cached post response
@@ -98,7 +105,9 @@ class TestBackend(TestCase):
             (msg, time) = cm.output[0].split(' time:')
             self.assertEquals(msg,
                               'INFO:restclients_core.dao:service:backend_test '
-                              'method:GET url:/ok2 status:404 from_cache:yes')
+                              'method:GET url:/ok2 status:404 from_cache:yes'
+                              ' cache_class:<class \'restclients_core.tests'
+                              '.dao_implementation.test_backend.Cache\'>')
             self.assertGreater(float(time), 0)
 
 
@@ -113,11 +122,13 @@ class Backend(MockDAO):
 class Cache(NoCache):
     def getCache(self, service, url, headers):
         if url == '/ok':
-            response = MockHTTP()
+            response = CacheHTTP()
+            response.cache_class = self.__class__
             response.status = 200
             response.data = 'ok - GET'
             return {'response': response}
 
     def processResponse(self, service, url, response):
         response.status = 404
+        response.cache_class = self.__class__
         return {'response': response}

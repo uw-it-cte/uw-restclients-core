@@ -23,7 +23,8 @@ setup(
     author_email="aca-it@uw.edu",
     include_package_data=True,
     install_requires=['commonconf>=0.6',
-                      'urllib3'],
+                      'urllib3',
+                      'python-dateutil'],
     license='Apache License, Version 2.0',
     description=('Core code for clients of a variety of RESTful web services '
                  'at the University of Washington'),
