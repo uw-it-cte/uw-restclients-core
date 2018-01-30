@@ -232,8 +232,8 @@ class DAO(object):
 
         service_key = "%s_%s" % (self.service_name().upper(), key)
 
-        if hasattr(settings, service_key):
-            return getattr(settings, service_key, default)
+        if hasattr(settings, "RESTCLIENTS_%s" % service_key):
+            return self.get_setting(service_key, default)
         else:
             return self.get_setting(key, default)
 
