@@ -62,6 +62,17 @@ class TestBackend(TestCase):
     def test_error_level2(self):
         self.assertRaises(ImproperlyConfigured, E2DAO().getURL, '/ok')
 
+    @override_settings(RESTCLIENTS_BACKEND_TEST_FOO=True,
+                       RESTCLIENTS_FOO=False,
+                       RESTCLIENTS_BAR=True)
+    def test_service_settings(self):
+        dao = TDAO()
+        self.assertEquals(dao.get_setting('FOO'), False)
+        self.assertEquals(dao.get_setting('BAR'), True)
+
+        self.assertEquals(dao.get_service_setting('FOO'), True)
+        self.assertEquals(dao.get_service_setting('BAR'), True)
+
     @skipUnless(hasattr(TestCase, 'assertLogs'), 'Python < 3.4')
     @override_settings(RESTCLIENTS_TIMING_LOG_ENABLED=True,
                        RESTCLIENTS_TIMING_LOG_RATE=1.0)
