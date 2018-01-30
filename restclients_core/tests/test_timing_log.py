@@ -34,7 +34,7 @@ class TestTimingLog(TestCase):
     @skipUnless(hasattr(TestCase, 'assertLogs'), 'Python < 3.4')
     @override_settings(RESTCLIENTS_TIMING_LOG_ENABLED=False,
                        RESTCLIENTS_TIMING_LOG_RATE=1.0,
-                       BACKEND_TEST_TIMING_LOG_ENABLED=True)
+                       RESTCLIENTS_BACKEND_TEST_TIMING_LOG_ENABLED=True)
     def test_per_service_config(self):
         with self.assertLogs('restclients_core.dao', level='INFO') as cm:
             response = TDAO().getURL('/ok')
