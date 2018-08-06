@@ -45,10 +45,6 @@ def load_resource_from_path(resource_dir, service_name,
 
         if handle is not None:
             data = handle.read()
-            try:
-                data = data
-            except UnicodeDecodeError:
-                pass
 
         response = MockHTTP()
         response.status = 200
@@ -60,7 +56,6 @@ def load_resource_from_path(resource_dir, service_name,
         if header_handle is not None:
             try:
                 data = header_handle.read()
-                data = data
                 file_values = json.loads(data)
 
                 if "headers" in file_values:
@@ -84,7 +79,7 @@ def convert_to_platform_safe(dir_file_name):
     :param dir_file_name: a string to be processed
     :return: a string with all the reserved characters replaced
     """
-    return re.sub('[\?|<>=:*,;+&"@$]', '_', dir_file_name)
+    return re.sub(r'[\?|<>=:*,;+&"@$]', '_', dir_file_name)
 
 
 def open_file(orig_file_path):
