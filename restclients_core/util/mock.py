@@ -46,7 +46,7 @@ def load_resource_from_path(resource_dir, service_name,
         if handle is not None:
             data = handle.read()
             try:
-                data = data.decode('utf-8')
+                data = data
             except UnicodeDecodeError:
                 pass
 
@@ -60,7 +60,7 @@ def load_resource_from_path(resource_dir, service_name,
         if header_handle is not None:
             try:
                 data = header_handle.read()
-                data = data.decode('utf-8')
+                data = data
                 file_values = json.loads(data)
 
                 if "headers" in file_values:
