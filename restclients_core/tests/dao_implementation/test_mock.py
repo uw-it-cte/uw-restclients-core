@@ -17,7 +17,7 @@ class TestMock(TestCase):
     def test_found_resource(self):
         response = TDAO().getURL('/found.json', {})
         self.assertEquals(response.status, 200)
-        self.assertEquals(response.read(), '{"OK": true }\n')
+        self.assertEquals(response.read(), b'{"OK": true }\n')
 
     def test_missing_resource(self):
         response = TDAO().getURL('/missing.json', {})
@@ -39,14 +39,14 @@ class TestMock(TestCase):
     def test_registered_paths(self):
         response = TDAO().getURL('/override.json', {})
         self.assertEquals(response.status, 200)
-        self.assertEquals(response.read(), '{"override": false }\n')
+        self.assertEquals(response.read(), b'{"override": false }\n')
 
         override = abspath(dirname(__file__) + "/resource_override/")
         MockDAO.register_mock_path(override)
 
         response = TDAO().getURL('/override.json', {})
         self.assertEquals(response.status, 200)
-        self.assertEquals(response.read(), '{"override": true }\n')
+        self.assertEquals(response.read(), b'{"override": true }\n')
 
     def test_binary_data(self):
         response = TDAO().getURL('/image.jpg', {})
