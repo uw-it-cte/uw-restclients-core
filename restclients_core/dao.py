@@ -12,10 +12,7 @@ from urllib3 import connection_from_url
 from urllib3.util.retry import Retry
 from logging import getLogger
 import dateutil.parser
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
+from urllib.parse import urlparse
 import time
 import ssl
 
