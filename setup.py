@@ -22,7 +22,7 @@ setup(
     author="UW-IT AXDD",
     author_email="aca-it@uw.edu",
     include_package_data=True,
-    install_requires=['commonconf>=0.6',
+    install_requires=['commonconf>=1.0',
                       'urllib3',
                       'python-dateutil'],
     license='Apache License, Version 2.0',
